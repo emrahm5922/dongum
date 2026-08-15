@@ -2223,6 +2223,10 @@ window.App.Main = (() => {
 // ================================
 // UYGULAMA BAŞLATMA
 // ================================
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    App.Main.init();
+  });
+} else {
   App.Main.init();
-});
+}

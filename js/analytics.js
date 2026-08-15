@@ -185,6 +185,10 @@ window.App.Analytics = {
 };
 
 // Sayfa yüklendiğinde analitiği başlat
-document.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.App.Analytics) window.App.Analytics.init();
+  });
+} else {
   if (window.App.Analytics) window.App.Analytics.init();
-});
+}

@@ -1,7 +1,7 @@
 // Döngüm PWA - Service Worker
 // Çevrimdışı çalışma ve bildirim desteği
 
-const CACHE_NAME = 'dongum-v1';
+const CACHE_NAME = 'dongum-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

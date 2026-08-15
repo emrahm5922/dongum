@@ -18,7 +18,11 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-NMSNTDM93F', { 'debug_mode': true });
+    gtag('config', 'G-NMSNTDM93F', { 
+      'send_page_view': true,
+      'debug_mode': true 
+    });
+    gtag('event', 'page_view', { page_title: 'Döngüm' });
   </script>
   
   <!-- PWA Manifest -->

@@ -52,6 +52,11 @@ self.addEventListener('activate', (event) => {
 
 // Fetch - önce önbellekten dene, sonra ağa git
 self.addEventListener('fetch', (event) => {
+  // Google Analytics ve dış servisler doğrudan ağa gitsin
+  if (event.request.url.includes('google') || event.request.url.includes('gtag') || event.request.url.includes('analytics')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((cachedResponse) => {

@@ -1,9 +1,8 @@
 window.App = window.App || {};
 
 /**
- * Gelişmiş Takvim Modülü (Advanced Interactive Calendar with Full Multi-Category Emoji System)
- * - Görsel Tasarım: Referans ekranındaki gibi geniş kare kartlar, gün içi döngü indisleri (Örn: 27(26)),
- * - Regl günlerinde belirgin beyaz tik işareti (✓) ve tek dokunuşla tikleme / regl aç-kapa,
+ * Gelişmiş Takvim Modülü (Advanced Interactive Calendar with Direct-Tap Checkmark System)
+ * - İstenen günlere doğrudan dokunarak veya tik kutucuğuna basarak TEK DOKUNUŞLA TİK (✓) koyma / kaldırma,
  * - Günlük bölümünden girilen TÜM kategorilerin (Ruh hali, Ağrı, Kanama, Akıntı, İlaç, Birliktelik, Spor, Su, Uyku, Aşerme/Özel belirtiler) emojilerini takvim kutucuğuna işler,
  * - Alt durum bilgi bandı ve aylar arası kıyaslama kartı.
  */
@@ -12,6 +11,7 @@ window.App.Calendar = {
   selectedDate: null,
   container: null,
   viewMode: 'month', // 'month' | 'year'
+  directCheckMode: true, // Dokunarak doğrudan regl işaretleme modu
 
   render(container) {
     this.container = container;
@@ -43,12 +43,18 @@ window.App.Calendar = {
     let html = `
       <div class="calendar-card" style="padding: 12px; background: var(--surface); border-radius: var(--radius-2xl);">
 
-        <!-- 1. ÜST GEÇİŞ ÇUBUĞU (Yıl | Ay Düğmesi) -->
-        <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+        <!-- 1. ÜST KONTROL ÇUBUĞU (Yıl | Ay ve Hızlı Tik Modu) -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
           <div style="display: inline-flex; background: var(--bg-secondary); padding: 3px; border-radius: var(--radius-full); border: 1px solid var(--border);">
-            <button type="button" class="btn btn-sm ${this.viewMode === 'year' ? 'btn-primary' : 'btn-ghost'}" id="btn-view-year" style="padding: 4px 16px; font-size: 0.78rem; font-weight: 700; border-radius: var(--radius-full);">Yıl</button>
-            <button type="button" class="btn btn-sm ${this.viewMode === 'month' ? 'btn-primary' : 'btn-ghost'}" id="btn-view-month" style="padding: 4px 16px; font-size: 0.78rem; font-weight: 700; border-radius: var(--radius-full);">Ay</button>
+            <button type="button" class="btn btn-sm ${this.viewMode === 'year' ? 'btn-primary' : 'btn-ghost'}" id="btn-view-year" style="padding: 4px 14px; font-size: 0.76rem; font-weight: 700; border-radius: var(--radius-full);">Yıl</button>
+            <button type="button" class="btn btn-sm ${this.viewMode === 'month' ? 'btn-primary' : 'btn-ghost'}" id="btn-view-month" style="padding: 4px 14px; font-size: 0.76rem; font-weight: 700; border-radius: var(--radius-full);">Ay</button>
           </div>
+
+          <!-- Doğrudan Dokunarak Tik İşaretleme Modu Butonu -->
+          <button type="button" id="btn-toggle-quick-check" class="btn btn-sm ${this.directCheckMode ? 'btn-primary' : 'btn-secondary'}" style="font-size: 0.76rem; padding: 5px 12px; border-radius: var(--radius-full); font-weight: 700; display: flex; align-items: center; gap: 5px;">
+            <span>🩸</span>
+            <span>${this.directCheckMode ? 'Dokun ve Tik Koy (Açık ✓)' : 'Dokun ve Tik Koy (Kapalı)'}</span>
+          </button>
         </div>
 
         <!-- 2. AY BAŞLIĞI & GEÇİŞLER -->
@@ -227,7 +233,9 @@ window.App.Calendar = {
           <div class="cal-day-header">
             <span class="cal-day-main">${i}</span>
             ${cycleDayNum ? `<span class="cal-day-sup">(${cycleDayNum})</span>` : ''}
-            ${isPeriod ? `<span class="cal-day-check-badge">✓</span>` : ''}
+            
+            <!-- Her Hücrede Doğrudan Tıklanabilir Tik Kutucuğu -->
+            <div class="cal-day-check-badge" data-check-date="${dateStr}" title="Regl İşaretle / Kaldır">✓</div>
           </div>
           
           <!-- Ruh Hali & Sağlık Emojileri Izgarası -->
@@ -550,8 +558,13 @@ window.App.Calendar = {
         window.App.Analytics.logEvent('period_day_toggled', { date: dateStr });
       }
 
+      const isNowPeriod = window.App.Data.getPeriodForDate(dateStr) !== null;
       if (window.App.Utils && window.App.Utils.showToast) {
-        window.App.Utils.showToast('Regl takvimi güncellendi 🌸', 'success');
+        window.App.Utils.showToast(isNowPeriod ? `${dateStr} Regl Olarak İşaretlendi ✓` : `${dateStr} Regl İşareti Kaldırıldı`, 'success');
+      }
+
+      if (window.App.Utils && window.App.Utils.vibrate) {
+        window.App.Utils.vibrate(35);
       }
 
       this.refresh();
@@ -583,12 +596,34 @@ window.App.Calendar = {
       this.refresh();
     });
 
-    // Takvim Hücrelerine Tıklama
+    // Dokun ve Tik Koy Modunu Aç / Kapat
+    this.container.querySelector('#btn-toggle-quick-check')?.addEventListener('click', () => {
+      this.directCheckMode = !this.directCheckMode;
+      if (window.App.Utils && window.App.Utils.showToast) {
+        window.App.Utils.showToast(
+          this.directCheckMode ? 'Dokunarak Regl İşaretleme Açıldı (✓)' : 'Sadece Seçim Modu Açıldı',
+          'info'
+        );
+      }
+      this.refresh();
+    });
+
+    // Takvim Hücrelerine ve Tik Kutucuklarına Tıklama
     this.container.querySelectorAll('.cal-day[data-date]').forEach(day => {
       day.addEventListener('click', (e) => {
-        const dateStr = e.currentTarget.getAttribute('data-date');
+        const dateStr = day.getAttribute('data-date');
         if (!dateStr) return;
-        this.selectDate(dateStr);
+
+        const clickedCheckBadge = e.target.closest('.cal-day-check-badge');
+
+        if (clickedCheckBadge || this.directCheckMode) {
+          // Doğrudan Tik (✓) İşaretini Aç veya Kapat
+          this.selectedDate = dateStr;
+          this.togglePeriodDay(dateStr);
+        } else {
+          // Normal Seçim
+          this.selectDate(dateStr);
+        }
       });
     });
   },

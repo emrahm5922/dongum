@@ -836,9 +836,73 @@
 }
 
 /* Calendar Day Micro Indicators & Health Log Chips */
-.cal-mini-icon {
-  font-size: 0.65rem;
+/* Long-Press Day Quick Preview Popup */
+.day-preview-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.day-preview-modal-card {
+  background: var(--surface);
+  border-radius: var(--radius-2xl);
+  max-width: 360px;
+  width: 100%;
+  padding: 18px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--border);
+  animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.day-preview-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  margin-bottom: 6px;
+  font-size: 0.84rem;
+}
+
+.day-preview-icon {
+  font-size: 1.2rem;
   line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.day-preview-content strong {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 1px;
+}
+
+.day-preview-content span {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .cal-log-chip {

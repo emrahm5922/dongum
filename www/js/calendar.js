@@ -1,7 +1,9 @@
 window.App = window.App || {};
 
 /**
- * Gelişmiş Takvim Modülü (Advanced Interactive Calendar with Direct-Tap Checkmark System)
+ * Gelişmiş Takvim Modülü (Advanced Interactive Calendar with Long-Press Day Details Popup)
+ * - İstenen güne BASILI TUTULDUĞUNDA (Long-Press / Uzun Basma ~450ms) o gün kaydedilen tüm ruh hali,
+ *   ağrı, akıntı, ilaç, su, birliktelik ve notları içeren sevimli bir hızlı önizleme penceresi açılır.
  * - İstenen günlere doğrudan dokunarak veya tik kutucuğuna basarak TEK DOKUNUŞLA TİK (✓) koyma / kaldırma,
  * - Günlük bölümünden girilen TÜM kategorilerin (Ruh hali, Ağrı, Kanama, Akıntı, İlaç, Birliktelik, Spor, Su, Uyku, Aşerme/Özel belirtiler) emojilerini takvim kutucuğuna işler,
  * - Alt durum bilgi bandı ve aylar arası kıyaslama kartı.
@@ -216,7 +218,6 @@ window.App.Calendar = {
               else if (text.includes('💫') || text.toLowerCase().includes('donme')) emojis.push('💫');
               else if (text.includes('🍕') || text.toLowerCase().includes('istah')) emojis.push('🍕');
               else {
-                // Emojiyi regex ile ayıkla
                 const match = text.match(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/u);
                 if (match) emojis.push(match[0]);
               }
@@ -229,7 +230,7 @@ window.App.Calendar = {
       const uniqueEmojis = Array.from(new Set(emojis)).slice(0, 4);
 
       html += `
-        <div class="${classes.join(' ')}" data-date="${dateStr}" title="${dateStr}">
+        <div class="${classes.join(' ')}" data-date="${dateStr}" title="${dateStr} (Detaylar için basılı tutun)">
           <div class="cal-day-header">
             <span class="cal-day-main">${i}</span>
             ${cycleDayNum ? `<span class="cal-day-sup">(${cycleDayNum})</span>` : ''}
@@ -262,7 +263,7 @@ window.App.Calendar = {
         <!-- 5. ALT DURUM BİLGİ ŞERİDİ (Görsel 2 ile Birebir) -->
         <div class="cal-bottom-status-ribbon">
           <span>Kalan günler: <strong>${daysUntilPeriod}</strong>. Hamile kalma şansı: <strong>${fertilityText}</strong></span>
-          <span style="font-size: 1.1rem; cursor: pointer;">⋮</span>
+          <span style="font-size: 0.75rem; opacity: 0.85;">💡 Günün detayları için güne <strong>basılı tutun</strong></span>
         </div>
 
         <!-- 6. AYLAR ARASI ADET SÜRESİ KIYASLAMA KARTI -->
@@ -280,6 +281,294 @@ window.App.Calendar = {
 
     const targetDate = this.selectedDate || todayStr;
     this.renderDayDetail(targetDate);
+  },
+
+  /**
+   * BASILI TUTULDUĞUNDA AÇILAN GÜN DETAYI UFAK PENCERESİ (Quick Preview Popup)
+   */
+  showDayPreviewPopup(dateStr) {
+    const dateObj = window.App.Utils ? window.App.Utils.parseDate(dateStr) : new Date(dateStr);
+    const formattedDate = window.App.Utils ? window.App.Utils.formatDateLong(dateObj) : dateStr;
+
+    const classification = window.App.Cycle ? window.App.Cycle.classifyDate(dateStr) : {};
+    const isPeriod = classification.isPeriod;
+
+    let phaseName = '🌿 Foliküler Faz';
+    let phaseBadgeColor = 'var(--accent-phase)';
+    if (classification.isPeriod) {
+      phaseName = '🩸 Regl Kanaması (İşaretli ✓)';
+      phaseBadgeColor = '#E57373';
+    } else if (classification.isOvulation) {
+      phaseName = '🌟 Yumurtlama Günü';
+      phaseBadgeColor = 'var(--accent-ovulation)';
+    } else if (classification.isFertile) {
+      phaseName = '✨ Doğurganlık Penceresi';
+      phaseBadgeColor = 'var(--accent-fertile)';
+    } else if (classification.isPredictedPeriod) {
+      phaseName = '📅 Tahmini Regl';
+      phaseBadgeColor = '#E57373';
+    }
+
+    const sym = (window.App.Data && typeof window.App.Data.getSymptoms === 'function')
+      ? window.App.Data.getSymptoms(dateStr)
+      : null;
+
+    const moodNames = {
+      great: '😄 Harika & Enerjik',
+      good: '🥰 Mutlu & Romantik',
+      okay: '😐 Normal / Dengeli',
+      bad: '😔 Yorgun & Hassas',
+      terrible: '😢 Çok Duygusal'
+    };
+
+    const painNames = {
+      none: 'Ağrı Yok 😊',
+      mild: 'Hafif Ağrı 🌱',
+      moderate: 'Orta Şiddetli Sancı ⚡',
+      severe: 'Şiddetli Sancı 🔥'
+    };
+
+    const flowNames = {
+      spotting: '💧 Lekelenme',
+      light: '● Hafif Kanama',
+      medium: '●● Orta Kanama',
+      heavy: '●●● Yoğun Kanama'
+    };
+
+    const dischargeNames = {
+      sticky: 'Yapışkan',
+      creamy: 'Kremsi / Beyaz',
+      eggWhite: 'Yumurta Akı (Doğurgan)',
+      watery: 'Sulu'
+    };
+
+    const sleepNames = {
+      terrible: '🌑 Çok Kötü / Uykusuzluk',
+      bad: '🌘 Kötü Uyku',
+      okay: '🌗 Normal',
+      good: '🌖 İyi Uyku',
+      great: '🌕 Harika & Derin Uyku'
+    };
+
+    let itemsHtml = '';
+
+    if (sym) {
+      // 1. Ruh Hali
+      if (sym.mood && moodNames[sym.mood]) {
+        itemsHtml += `
+          <div class="day-preview-item">
+            <div class="day-preview-icon">😊</div>
+            <div class="day-preview-content">
+              <strong>Ruh Hali:</strong>
+              <span>${moodNames[sym.mood]}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // 2. Ağrı / Sancı
+      if (sym.painLevel && sym.painLevel !== 'none') {
+        const areaLabels = {
+          abdomen: 'Karın/Kramp',
+          lowerBack: 'Bel',
+          head: 'Baş Ağrısı',
+          breast: 'Göğüs Hassasiyeti',
+          legs: 'Bacak/Eklem',
+          upperBack: 'Sırt'
+        };
+        const areasText = (sym.painAreas && sym.painAreas.length > 0)
+          ? ` (${sym.painAreas.map(a => areaLabels[a] || a).join(', ')})`
+          : '';
+
+        itemsHtml += `
+          <div class="day-preview-item">
+            <div class="day-preview-icon">⚡</div>
+            <div class="day-preview-content">
+              <strong>Ağrı & Rahatsızlık:</strong>
+              <span>${painNames[sym.painLevel] || sym.painLevel}${areasText}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // 3. Kanama & Akıntı
+      if (sym.flow && sym.flow !== 'none') {
+        itemsHtml += `
+          <div class="day-preview-item">
+            <div class="day-preview-icon">🩸</div>
+            <div class="day-preview-content">
+              <strong>Kanama Yoğunluğu:</strong>
+              <span>${flowNames[sym.flow] || sym.flow}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // 4. Servikal Akıntı
+      if (sym.discharge && sym.discharge !== 'none') {
+        itemsHtml += `
+          <div class="day-preview-item">
+            <div class="day-preview-icon">💧</div>
+            <div class="day-preview-content">
+              <strong>Vajinal Akıntı:</strong>
+              <span>${dischargeNames[sym.discharge] || sym.discharge}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // 5. İlaç / Doğum Kontrol
+      if (sym.birthControlTaken || (sym.medications && sym.medications.length > 0)) {
+        itemsHtml += `
+          <div class="day-preview-item">
+            <div class="day-preview-icon">💊</div>
+            <div class="day-preview-content">
+              <strong>İlaç / Doğum Kontrol:</strong>
+              <span>Doğum kontrol veya takviye ilaç alındı ✓</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // 6. Yaşam Tarzı
+      if (sym.intimacy || sym.exercise) {
+        let acts = [];
+        if (sym.intimacy) acts.push('❤️ Cinsel Birliktelik');
+        if (sym.exercise) acts.push('🏃‍♀️ Egzersiz / Spor');
+        itemsHtml += `
+          <div class="day-preview-item">
+            <div class="day-preview-icon">🏃‍♀️</div>
+            <div class="day-preview-content">
+              <strong>Aktivite & Yaşam:</strong>
+              <span>${acts.join(' • ')}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // 7. Su Tüketimi
+      if (sym.water !== undefined && Number(sym.water) > 0) {
+        itemsHtml += `
+          <div class="day-preview-item">
+            <div class="day-preview-icon">🥛</div>
+            <div class="day-preview-content">
+              <strong>Su Tüketimi:</strong>
+              <span>${sym.water} Bardak (~${(Number(sym.water) * 0.25).toFixed(1)} Litre)</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // 8. Uyku
+      if (sym.sleep && sleepNames[sym.sleep]) {
+        itemsHtml += `
+          <div class="day-preview-item">
+            <div class="day-preview-icon">🌙</div>
+            <div class="day-preview-content">
+              <strong>Uyku Kalitesi:</strong>
+              <span>${sleepNames[sym.sleep]}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // 9. Özel Belirtiler & Aşerme
+      if (sym.customSymptoms && sym.customSymptoms.length > 0) {
+        itemsHtml += `
+          <div class="day-preview-item">
+            <div class="day-preview-icon">✨</div>
+            <div class="day-preview-content">
+              <strong>Özel Belirtiler:</strong>
+              <span>${sym.customSymptoms.join(', ')}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // 10. Günlük Notu
+      if (sym.notes) {
+        itemsHtml += `
+          <div class="day-preview-item" style="border-left: 3px solid var(--accent-period);">
+            <div class="day-preview-icon">📝</div>
+            <div class="day-preview-content">
+              <strong>Günlük Notu:</strong>
+              <span style="font-style: italic;">"${sym.notes}"</span>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    if (!itemsHtml) {
+      itemsHtml = `
+        <div style="text-align: center; padding: 20px 10px; color: var(--text-secondary); font-size: 0.85rem;">
+          <div style="font-size: 2rem; margin-bottom: 6px;">📝</div>
+          Bu gün için henüz ruh hali veya belirti kaydı girilmemiş.<br>
+          Aşağıdaki <strong>"Günlüğü Düzenle"</strong> butonuna basarak kolayca ekleyebilirsiniz.
+        </div>
+      `;
+    }
+
+    // Modal Pencereyi Oluştur
+    const modal = document.createElement('div');
+    modal.className = 'day-preview-modal-overlay';
+    modal.innerHTML = `
+      <div class="day-preview-modal-card">
+        <!-- Modal Başlığı -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border);">
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">${formattedDate}</h3>
+            <span style="display: inline-block; font-size: 0.78rem; font-weight: 700; padding: 3px 10px; border-radius: var(--radius-full); background: rgba(212, 85, 107, 0.12); color: ${phaseBadgeColor};">
+              ${phaseName}
+            </span>
+          </div>
+          <button type="button" class="btn btn-sm btn-ghost btn-close-preview" style="font-size: 1.2rem; line-height: 1; padding: 4px 8px; border-radius: 50%;">✕</button>
+        </div>
+
+        <!-- Kaydedilen Tüm Kategorilerin Listesi -->
+        <div style="margin-bottom: 14px;">
+          ${itemsHtml}
+        </div>
+
+        <!-- Butonlar -->
+        <div style="display: flex; gap: 8px; flex-direction: column;">
+          <button type="button" class="btn btn-primary btn-sm btn-edit-this-day" style="width: 100%; padding: 9px; font-weight: 700;">
+            ✏️ Ruh Hali & Belirti Düzenle
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm btn-toggle-period-quick" style="width: 100%; padding: 9px; font-weight: 700;">
+            ${isPeriod ? '✓ Regl İşaretini Kaldır' : '🩸 Bu Günü Regl Olarak İşaretle (✓)'}
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const closeModal = () => {
+      modal.remove();
+    };
+
+    modal.querySelector('.btn-close-preview')?.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    // Günlüğü Düzenle Butonu
+    modal.querySelector('.btn-edit-this-day')?.addEventListener('click', () => {
+      closeModal();
+      if (window.App.Main && window.App.Main.navigateTo) {
+        window.App.Main.navigateTo('symptoms');
+        if (window.App.Symptoms && window.App.Symptoms.selectDate) {
+          window.App.Symptoms.selectDate(dateStr);
+        }
+      }
+    });
+
+    // Regl İşaretini Aç/Kapat Butonu
+    modal.querySelector('.btn-toggle-period-quick')?.addEventListener('click', () => {
+      closeModal();
+      this.togglePeriodDay(dateStr);
+    });
   },
 
   /**
@@ -608,11 +897,55 @@ window.App.Calendar = {
       this.refresh();
     });
 
-    // Takvim Hücrelerine ve Tik Kutucuklarına Tıklama
+    // Takvim Hücrelerine Tıklama & BASILI TUTMA (Long-Press)
     this.container.querySelectorAll('.cal-day[data-date]').forEach(day => {
+      const dateStr = day.getAttribute('data-date');
+      if (!dateStr) return;
+
+      let pressTimer = null;
+      let isLongPress = false;
+
+      const startPress = () => {
+        isLongPress = false;
+        pressTimer = setTimeout(() => {
+          isLongPress = true;
+          if (window.App.Utils && window.App.Utils.vibrate) {
+            window.App.Utils.vibrate(45);
+          }
+          this.showDayPreviewPopup(dateStr);
+        }, 450); // 450ms basılı tutulduğunda popup açılır
+      };
+
+      const cancelPress = () => {
+        if (pressTimer) {
+          clearTimeout(pressTimer);
+          pressTimer = null;
+        }
+      };
+
+      // Dokunmatik Ekran (Mobil) Dinleyicileri
+      day.addEventListener('touchstart', startPress, { passive: true });
+      day.addEventListener('touchend', cancelPress);
+      day.addEventListener('touchmove', cancelPress);
+      day.addEventListener('touchcancel', cancelPress);
+
+      // Fare Dinleyicileri (Masaüstü & Web)
+      day.addEventListener('mousedown', startPress);
+      day.addEventListener('mouseup', cancelPress);
+      day.addEventListener('mouseleave', cancelPress);
+
+      // Sağ Tıklama ile de Popup Açma
+      day.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        this.showDayPreviewPopup(dateStr);
+      });
+
+      // Normal Tıklama (Basılı tutulmadıysa çalışır)
       day.addEventListener('click', (e) => {
-        const dateStr = day.getAttribute('data-date');
-        if (!dateStr) return;
+        if (isLongPress) {
+          isLongPress = false;
+          return;
+        }
 
         const clickedCheckBadge = e.target.closest('.cal-day-check-badge');
 

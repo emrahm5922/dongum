@@ -450,7 +450,7 @@ window.App.Calendar = {
 
   goToToday() {
     this.currentMonth = new Date();
-    const todayStr = window.App.Utils ? window.App.Utils.toISODateString(this.currentMonth);
+    const todayStr = window.App.Utils ? window.App.Utils.toISODateString(this.currentMonth) : '';
     this.selectedDate = todayStr;
     this.refresh();
     this.renderDayDetail(todayStr);

@@ -150,7 +150,7 @@ window.App.Notifications = {
       if (!sentHistory[tag]) {
         this.sendNotification(
           App.I18n.t('app.name') || 'Döngüm',
-          App.I18n.t('notify.ovulationDay'),
+          App.I18n.t('notify.ovulationDay') || 'Bugün en yüksek doğurganlık gününüz 🌸',
           tag,
           { action: 'calendar' }
         );
@@ -158,12 +158,41 @@ window.App.Notifications = {
       }
     }
 
-    // 6. Moda ve Doğum Geçmişine Özel Bilimsel İpucu Bildirimi
+    // 6. Adet Uzaması / Bitmesi Gerekirken Bitmeme Uyarısı (Prolonged Period Alert)
+    this.checkAndSendProlongedPeriodNotification();
+
+    // 7. Moda ve Doğum Geçmişine Özel Bilimsel İpucu Bildirimi
     this.checkAndSendEducationalTip();
 
-    // 7. Hamilelik & Haftalık Bebek Gelişimi Bildirimi
+    // 8. Hamilelik & Haftalık Bebek Gelişimi Bildirimi
     if (userGoal === 'ttc') {
       this.checkAndSendWeeklyPregnancyNotification();
+    }
+  },
+
+  /**
+   * Adet Süresi Normalden Uzun Sürdüğünde veya Bitmesi Gerekirken Bitmediğinde Gönderilen Akıllı Uyarı
+   */
+  checkAndSendProlongedPeriodNotification() {
+    if (!App.Data || !App.Cycle) return;
+    const todayStr = App.Utils.toISODateString(new Date());
+    const sentHistory = this._getHistory();
+
+    const activePeriod = App.Data.getCurrentPeriod ? App.Data.getCurrentPeriod() : null;
+    const settings = App.Data.get('settings') || {};
+    const expectedPeriodLength = settings.periodLength || 5;
+
+    if (activePeriod && activePeriod.days && activePeriod.days.length > expectedPeriodLength) {
+      const currentDaysCount = activePeriod.days.length;
+      const tag = `prolonged_period_${currentDaysCount}_${todayStr}`;
+
+      if (!sentHistory[tag]) {
+        const title = '🩸 Adet Süresi Hatırlatması';
+        const body = `Adetiniz ${currentDaysCount}. gününde devam ediyor görünüyor. Bittiğinde takvimden işaretlemeyi veya kanama devam ediyorsa sağlığınız için doktorunuza danışmayı unutmayın 🩺🌸`;
+
+        this.sendNotification(title, body, tag, { action: 'calendar' });
+        this._recordHistory(tag, todayStr);
+      }
     }
   },
 

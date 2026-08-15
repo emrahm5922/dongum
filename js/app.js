@@ -265,6 +265,7 @@ window.App.Main = (() => {
   }
 
   function completeOnboarding() {
+    const nameInput = document.getElementById('onboard-user-name');
     const ageInput = document.getElementById('onboard-user-age');
     const goalInput = document.getElementById('onboard-user-goal');
     const maritalInput = document.getElementById('onboard-user-marital');
@@ -276,6 +277,7 @@ window.App.Main = (() => {
     const periodRange = document.getElementById('onboard-period-length');
 
     // Profil bilgilerini kaydet
+    if (nameInput && nameInput.value.trim()) App.Data.set('settings.userName', nameInput.value.trim());
     if (ageInput) App.Data.set('settings.userAge', parseInt(ageInput.value, 10) || 25);
     if (goalInput) App.Data.set('settings.userGoal', goalInput.value || 'track');
     if (maritalInput) App.Data.set('settings.userMarital', maritalInput.value || 'single');

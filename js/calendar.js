@@ -2,7 +2,9 @@ window.App = window.App || {};
 
 /**
  * Takvim Modülü (Advanced Interactive Calendar & Daily Health History Inspector)
- * İnteraktif regl, yumurtlama, doğurganlık ve geçmiş günlerin tüm sağlık kayıtlarını gösterir.
+ * 1. Tikli & Seçmeli Adet Günü İşaretleme (Tek dokunuşla Regl Oldum ✓)
+ * 2. Aylar Arası Adet Süresi Kıyaslama Motoru (Örn: Bu Ay 7 Gün vs Geçen Ay 9 Gün Kıyaslaması)
+ * 3. Detaylı Semptom, Ağrı, Ateş ve Birliktelik Geçmişi
  */
 window.App.Calendar = {
   currentMonth: new Date(),
@@ -30,6 +32,7 @@ window.App.Calendar = {
 
     let html = `
       <div class="calendar-card">
+        <!-- Takvim Üst Başlığı & Ay Değişimi -->
         <div class="calendar-header">
           <button type="button" class="btn-cal-nav prev-month" aria-label="Önceki Ay">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
@@ -41,6 +44,7 @@ window.App.Calendar = {
           <button type="button" class="btn-cal-today today-btn">${t('calendar.today', 'Bugün')}</button>
         </div>
 
+        <!-- Haftanın Günleri -->
         <div class="calendar-weekdays">
           <div class="weekday">${t('calendar.weekday.short.mon', 'Pzt')}</div>
           <div class="weekday">${t('calendar.weekday.short.tue', 'Sal')}</div>
@@ -51,6 +55,7 @@ window.App.Calendar = {
           <div class="weekday">${t('calendar.weekday.short.sun', 'Paz')}</div>
         </div>
 
+        <!-- Takvim Gün Izgarası -->
         <div class="calendar-grid">
     `;
 
@@ -84,7 +89,7 @@ window.App.Calendar = {
       if (classification) {
         if (classification.isPeriod) {
           classes.push('period');
-          dotHtml += `<span class="cal-dot dot-period" title="Regl"></span>`;
+          dotHtml += `<span class="cal-dot dot-period" title="Regl ✓">✓</span>`;
         } else if (classification.isPredictedPeriod) {
           classes.push('predicted-period');
           dotHtml += `<span class="cal-dot dot-predicted" title="Tahmini"></span>`;
@@ -107,8 +112,8 @@ window.App.Calendar = {
           if (sym.intimacy) {
             dotHtml += `<span class="cal-mini-icon" title="Birliktelik">❤️</span>`;
           }
-          if (sym.mood) {
-            dotHtml += `<span class="cal-dot dot-symptom" title="Kayıt Var"></span>`;
+          if (sym.temperature) {
+            dotHtml += `<span class="cal-mini-icon" title="Ateş">🌡️</span>`;
           }
         }
       }
@@ -132,13 +137,16 @@ window.App.Calendar = {
         </div>
 
         <div class="calendar-legend">
-          <div class="legend-item"><span class="legend-dot dot-period"></span><span>${t('calendar.periodDays', 'Regl')}</span></div>
+          <div class="legend-item"><span class="legend-dot dot-period">✓</span><span>${t('calendar.periodDays', 'Regl Oldum')}</span></div>
           <div class="legend-item"><span class="legend-dot dot-predicted"></span><span>${t('calendar.predictedPeriod', 'Tahmini')}</span></div>
           <div class="legend-item"><span class="legend-dot dot-ovulation"></span><span>${t('calendar.ovulation', 'Yumurtlama')}</span></div>
           <div class="legend-item"><span class="legend-dot dot-fertile"></span><span>${t('calendar.fertileWindow', 'Doğurgan')}</span></div>
         </div>
 
-        <!-- Seçilen Günün Detaylı Sağlık & Geçmiş Özeti -->
+        <!-- 1. AYLAR ARASI ADET SÜRESİ KIYASLAMA KARTI -->
+        <div id="cal-period-comparison-card" style="margin-top: 14px;"></div>
+
+        <!-- 2. SEÇİLEN GÜNÜN TİKLİ İŞARETLEME VE DETAY KARTI -->
         <div id="day-detail-panel" class="cal-detail-card" style="display: block; margin-top: 14px;"></div>
       </div>
     `;
@@ -146,12 +154,104 @@ window.App.Calendar = {
     this.container.innerHTML = html;
     this.attachEventListeners();
 
+    this.renderComparisonCard();
+
     const targetDate = this.selectedDate || todayStr;
     this.renderDayDetail(targetDate);
   },
 
   /**
-   * Seçilen Günün Tüm Sağlık, Sancı, İlaç ve Ruh Hali Geçmişini Gösterir
+   * Aylar Arası Adet Süresi Kıyaslama Kartı (Örn: Bu Ay 7 Gün vs Geçen Ay 9 Gün)
+   */
+  renderComparisonCard() {
+    const compContainer = this.container ? this.container.querySelector('#cal-period-comparison-card') : null;
+    if (!compContainer) return;
+
+    let periods = [];
+    if (window.App.Data && typeof window.App.Data.getPeriods === 'function') {
+      periods = window.App.Data.getPeriods() || [];
+    }
+
+    // Tarihe göre sırala (En yeniden en eskiye)
+    periods = periods.slice().sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+
+    if (periods.length === 0) {
+      compContainer.innerHTML = '';
+      return;
+    }
+
+    const currentPeriod = periods[0];
+    const prevPeriod = periods.length > 1 ? periods[1] : null;
+
+    const currentDuration = currentPeriod.days ? currentPeriod.days.length : 5;
+    const prevDuration = prevPeriod && prevPeriod.days ? prevPeriod.days.length : null;
+
+    const currentMonthLabel = window.App.Utils ? window.App.Utils.formatMonthYear(new Date(currentPeriod.startDate)) : 'Son Ay';
+    const prevMonthLabel = prevPeriod && window.App.Utils ? window.App.Utils.formatMonthYear(new Date(prevPeriod.startDate)) : 'Önceki Ay';
+
+    let diffHtml = '';
+    let diffBadge = '';
+
+    if (prevDuration !== null) {
+      const diff = currentDuration - prevDuration;
+      if (diff === 0) {
+        diffBadge = `<span style="background: rgba(91, 154, 111, 0.15); color: var(--accent-fertile); padding: 3px 8px; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 700;">🟢 Eşit Süre (Dengeli)</span>`;
+        diffHtml = `Bu ayki kanamanız geçen ayla <strong>aynı sürede (${currentDuration} gün)</strong> tamamlandı.`;
+      } else if (diff < 0) {
+        diffBadge = `<span style="background: rgba(91, 154, 111, 0.15); color: var(--accent-fertile); padding: 3px 8px; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 700;">📉 ${Math.abs(diff)} Gün Daha Kısa</span>`;
+        diffHtml = `Bu ayki adetiniz geçen aya göre <strong>${Math.abs(diff)} gün daha kısa</strong> sürdü (${prevDuration} günden ${currentDuration} güne düştü).`;
+      } else {
+        diffBadge = `<span style="background: rgba(230, 160, 60, 0.15); color: #b87314; padding: 3px 8px; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 700;">📈 ${diff} Gün Daha Uzun</span>`;
+        diffHtml = `Bu ayki adetiniz geçen aya göre <strong>${diff} gün daha uzun</strong> sürdü (${prevDuration} günden ${currentDuration} güne çıktı).`;
+      }
+    } else {
+      diffBadge = `<span style="background: var(--bg-secondary); color: var(--text-secondary); padding: 3px 8px; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 600;">İlk Kayıt</span>`;
+      diffHtml = `Son adet süreniz: <strong>${currentDuration} gün</strong>. Gelecek aylarda kıyaslama otomatik olarak hesaplanacaktır.`;
+    }
+
+    compContainer.innerHTML = `
+      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 12px 14px; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 0.84rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+            📊 Aylar Arası Adet Süresi Kıyaslaması
+          </span>
+          ${diffBadge}
+        </div>
+
+        <!-- Karşılaştırma Çubukları -->
+        <div style="display: flex; flex-direction: column; gap: 8px; margin: 10px 0;">
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 3px;">
+              <span>${currentMonthLabel} (Son Dönem)</span>
+              <strong>${currentDuration} Gün</strong>
+            </div>
+            <div style="width: 100%; background: var(--bg-secondary); height: 8px; border-radius: var(--radius-full); overflow: hidden;">
+              <div style="width: ${Math.min(100, (currentDuration / 10) * 100)}%; background: linear-gradient(90deg, #D4556B, #E87285); height: 100%; border-radius: var(--radius-full);"></div>
+            </div>
+          </div>
+
+          ${prevPeriod ? `
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 3px;">
+                <span>${prevMonthLabel} (Önceki Dönem)</span>
+                <strong>${prevDuration} Gün</strong>
+              </div>
+              <div style="width: 100%; background: var(--bg-secondary); height: 8px; border-radius: var(--radius-full); overflow: hidden;">
+                <div style="width: ${Math.min(100, (prevDuration / 10) * 100)}%; background: #999; height: 100%; border-radius: var(--radius-full);"></div>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+
+        <div style="font-size: 0.78rem; color: var(--text-primary); line-height: 1.4; background: var(--bg-secondary); padding: 8px 10px; border-radius: var(--radius-md); border-left: 3px solid var(--accent-period);">
+          💡 ${diffHtml} <span style="color: var(--text-secondary);">(Tıbbi olarak 3-7 gün normal kabul edilir).</span>
+        </div>
+      </div>
+    `;
+  },
+
+  /**
+   * Seçilen Günün Tikli Adet Girişi & Sağlık Özeti
    */
   renderDayDetail(dateStr) {
     const panel = this.container ? this.container.querySelector('#day-detail-panel') : null;
@@ -167,7 +267,7 @@ window.App.Calendar = {
     let phaseName = t('phases.follicular', 'Foliküler Faz');
     let phaseBadgeColor = 'var(--accent-phase)';
     if (classification.isPeriod) {
-      phaseName = '🩸 Regl Dönemi';
+      phaseName = '🩸 Regl Dönemi (İşaretli ✓)';
       phaseBadgeColor = 'var(--accent-period)';
     } else if (classification.isOvulation) {
       phaseName = '🌟 Yumurtlama Günü (Ovulasyon)';
@@ -248,10 +348,30 @@ window.App.Calendar = {
           </button>
         </div>
 
+        <!-- TİKLİ / SEÇMELİ ADET İŞARETLEME KUTUSU (TEK DOKUNUŞLA AÇ/KAPA) -->
+        <div id="btn-period-toggle-card" style="background: ${isPeriod ? 'rgba(212, 85, 107, 0.12)' : 'var(--bg-secondary)'}; border: 1.5px solid ${isPeriod ? 'var(--accent-period)' : 'var(--border)'}; border-radius: var(--radius-lg); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s ease; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.5rem;">🩸</span>
+            <div>
+              <strong style="font-size: 0.92rem; color: var(--text-primary); display: block;">
+                ${isPeriod ? 'Bu Gün Adet Oldum ✓' : 'Bugün Adet Oldum (İşaretle)'}
+              </strong>
+              <span style="font-size: 0.75rem; color: var(--text-secondary);">
+                ${isPeriod ? 'Regl takviminizde işaretlendi. Kaldırmak için dokunun.' : 'Bu günü kanama günü olarak kaydetmek için dokunun.'}
+              </span>
+            </div>
+          </div>
+          
+          <!-- İnteraktif Tik Kutusu -->
+          <div style="width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: ${isPeriod ? 'var(--accent-period)' : 'var(--surface)'}; border: 2px solid ${isPeriod ? 'var(--accent-period)' : 'var(--border)'}; color: #fff; font-size: 1.1rem; font-weight: 800; transition: all 0.2s ease;">
+            ${isPeriod ? '✓' : ''}
+          </div>
+        </div>
+
         <!-- O Günün Sağlık & Semptom Özeti -->
-        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border);">
+        <div style="padding-top: 8px; border-top: 1px dashed var(--border);">
           <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px;">
-            📝 Bu Günün Kayıtları & Durumu:
+            📝 Bu Günün Sağlık Notları:
           </div>
           
           ${logChips.length > 0 ? `
@@ -259,8 +379,8 @@ window.App.Calendar = {
               ${logChips.join('')}
             </div>
           ` : `
-            <p style="font-size: 0.82rem; color: var(--text-secondary); font-style: italic; margin: 4px 0 8px;">
-              Bu gün için henüz semptom, ağrı veya su kaydı girilmemiş.
+            <p style="font-size: 0.8rem; color: var(--text-secondary); font-style: italic; margin: 4px 0 8px;">
+              Bu gün için semptom veya ağrı kaydı girilmemiş.
             </p>
           `}
 
@@ -270,17 +390,15 @@ window.App.Calendar = {
             </div>
           ` : ''}
         </div>
-
-        <!-- Hızlı Regl Başlat / Bitir Eylemi -->
-        <div style="margin-top: 12px; display: flex; gap: 8px;">
-          <button type="button" class="btn ${isPeriod ? 'btn-danger' : 'btn-primary'} btn-block toggle-period-action" style="flex: 1; padding: 10px; font-size: 0.88rem; font-weight: 600;">
-            ${isPeriod ? '🩸 Bu Günü Regl Dışı Yap' : '🩸 Bu Günü Regl Olarak İşaretle'}
-          </button>
-        </div>
       </div>
     `;
 
-    // Buton Dinleyicileri
+    // Tikli Kutucuk Dinleyicisi
+    panel.querySelector('#btn-period-toggle-card')?.addEventListener('click', () => {
+      this.togglePeriodDay(dateStr);
+    });
+
+    // Günlük Düzenle Butonu
     panel.querySelector('.btn-goto-day-log')?.addEventListener('click', () => {
       if (window.App.Main && window.App.Main.navigateTo) {
         window.App.Main.navigateTo('symptoms');
@@ -288,10 +406,6 @@ window.App.Calendar = {
           window.App.Symptoms.selectDate(dateStr);
         }
       }
-    });
-
-    panel.querySelector('.toggle-period-action')?.addEventListener('click', () => {
-      this.togglePeriodDay(dateStr);
     });
   },
 
@@ -310,8 +424,8 @@ window.App.Calendar = {
 
   selectDate(dateStr) {
     this.selectedDate = dateStr;
-    this.container?.querySelectorAll('.cal-day').forEach(el => {
-      el.classList.toggle('selected', el.getAttribute('data-date') === dateStr);
+    this.container?.querySelectorAll('.cal-day').forEach(day => {
+      day.classList.toggle('selected', day.getAttribute('data-date') === dateStr);
     });
     this.renderDayDetail(dateStr);
   },
@@ -319,11 +433,18 @@ window.App.Calendar = {
   togglePeriodDay(dateStr) {
     if (window.App.Data && typeof window.App.Data.togglePeriodDay === 'function') {
       window.App.Data.togglePeriodDay(dateStr);
-      if (window.App.Utils && window.App.Utils.showToast) {
-        window.App.Utils.showToast('Regl takvimi güncellendi 🌸', 'success');
+      
+      if (window.App.Analytics && window.App.Analytics.logEvent) {
+        window.App.Analytics.logEvent('period_day_toggled', { date: dateStr });
       }
+
+      if (window.App.Utils && window.App.Utils.showToast) {
+        window.App.Utils.showToast('Regl takvimi ve süre kıyaslaması güncellendi 🌸', 'success');
+      }
+
       this.refresh();
       this.renderDayDetail(dateStr);
+      
       if (window.App.Main && window.App.Main.renderDashboard) {
         window.App.Main.renderDashboard();
       }

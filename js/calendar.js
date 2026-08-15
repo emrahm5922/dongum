@@ -1,12 +1,11 @@
 window.App = window.App || {};
 
 /**
- * Gelişmiş Takvim Modülü (Advanced Interactive Calendar with Daily Emoji & Bead Card System)
- * - Görsel Tasarım: Kullanıcının referans ekranındaki gibi kare kartlar, gün içi döngü indisleri (Örn: 27(26)),
- * - Çizgili tahmini regl kartları, mercan pembe aktif regl kartları,
- * - Günlük ruh hali & semptom emojileri (🥰, 💧, 💊, ⚡, 🍓...),
- * - Alt bilgi bandı (Kalan günler & Hamile kalma şansı),
- * - Tek dokunuşla tikleme / regl günü işaretleme.
+ * Gelişmiş Takvim Modülü (Advanced Interactive Calendar with Full Multi-Category Emoji System)
+ * - Görsel Tasarım: Referans ekranındaki gibi geniş kare kartlar, gün içi döngü indisleri (Örn: 27(26)),
+ * - Regl günlerinde belirgin beyaz tik işareti (✓) ve tek dokunuşla tikleme / regl aç-kapa,
+ * - Günlük bölümünden girilen TÜM kategorilerin (Ruh hali, Ağrı, Kanama, Akıntı, İlaç, Birliktelik, Spor, Su, Uyku, Aşerme/Özel belirtiler) emojilerini takvim kutucuğuna işler,
+ * - Alt durum bilgi bandı ve aylar arası kıyaslama kartı.
  */
 window.App.Calendar = {
   currentMonth: new Date(),
@@ -75,7 +74,7 @@ window.App.Calendar = {
           <div class="weekday">Paz</div>
         </div>
 
-        <!-- 4. GÜN IZGARASI (KARE KARTLAR & EMOJİLER) -->
+        <!-- 4. GÜN IZGARASI (GENİŞ KUTUCUKLAR, TİK İŞARETİ & TÜM EMOJİLER) -->
         <div class="calendar-grid" style="gap: 4px;">
     `;
 
@@ -132,11 +131,13 @@ window.App.Calendar = {
         }
       }
 
-      // O Güne Ait Semptom & Ruh Hali Emojileri
+      // ==========================================================
+      // O GÜNE AİT TÜM GÜNLÜK KATEGORİLERİNİN EMOJİLERİNİ TOPLA
+      // ==========================================================
       if (window.App.Data && typeof window.App.Data.getSymptoms === 'function') {
         const sym = window.App.Data.getSymptoms(dateStr);
         if (sym) {
-          // Ruh hali
+          // 1. Ruh Hali Emojileri
           const moodEmojis = {
             great: '😄',
             good: '🥰',
@@ -146,51 +147,92 @@ window.App.Calendar = {
           };
           if (sym.mood && moodEmojis[sym.mood]) emojis.push(moodEmojis[sym.mood]);
 
-          // Ağrı / Sancı
-          if (sym.painLevel && sym.painLevel !== 'none') {
-            emojis.push('⚡');
+          // 2. Ağrı / Sancı Seviyesi
+          const painEmojis = {
+            mild: '🌱',
+            moderate: '⚡',
+            severe: '🔥'
+          };
+          if (sym.painLevel && painEmojis[sym.painLevel]) {
+            emojis.push(painEmojis[sym.painLevel]);
           }
 
-          // Akıntı / Kanama
+          // 3. Ağrı Hissedilen Bölgeler
+          if (sym.painAreas && Array.isArray(sym.painAreas)) {
+            if (sym.painAreas.includes('head')) emojis.push('🤕');
+            if (sym.painAreas.includes('lowerBack') || sym.painAreas.includes('upperBack')) emojis.push('🩹');
+            if (sym.painAreas.includes('breast')) emojis.push('💆‍♀️');
+            if (sym.painAreas.includes('legs')) emojis.push('🦵');
+            if (sym.painAreas.includes('abdomen') && !emojis.includes('⚡')) emojis.push('⚡');
+          }
+
+          // 4. Kanama / Akıntı / Leke
           if (sym.flow && sym.flow !== 'none') {
-            emojis.push('💧');
+            emojis.push(sym.flow === 'spotting' ? '💧' : '🩸');
           }
 
-          // Birliktelik
-          if (sym.intimacy) {
-            emojis.push('❤️');
+          // 5. Servikal Akıntı Türü
+          if (sym.discharge && sym.discharge !== 'none') {
+            if (sym.discharge === 'eggWhite') emojis.push('🥚');
+            else if (!emojis.includes('💧')) emojis.push('💧');
           }
 
-          // Ateş
-          if (sym.temperature) {
-            emojis.push('🌡️');
+          // 6. Yaşam Tarzı (Birliktelik & Spor)
+          if (sym.intimacy) emojis.push('❤️');
+          if (sym.exercise) emojis.push('🏃‍♀️');
+
+          // 7. Su Tüketimi (Yeterli / Bol Su)
+          if (sym.water !== undefined && Number(sym.water) >= 6) {
+            emojis.push('🥛');
           }
 
-          // İlaç / Hap
-          if (sym.birthControlTaken) {
+          // 8. Uyku Kalitesi
+          if (sym.sleep) {
+            if (sym.sleep === 'terrible' || sym.sleep === 'bad') emojis.push('🥱');
+            else if (sym.sleep === 'great' || sym.sleep === 'good') emojis.push('🌙');
+          }
+
+          // 9. İlaç / Doğum Kontrol
+          if (sym.birthControlTaken || (sym.medications && sym.medications.length > 0)) {
             emojis.push('💊');
           }
 
-          // Özel semptomlar
-          if (sym.customSymptoms && sym.customSymptoms.length > 0) {
-            if (sym.customSymptoms.includes('tatli_istegi')) emojis.push('🍓');
-            if (sym.customSymptoms.includes('yorgunluk')) emojis.push('😴');
-            if (sym.customSymptoms.includes('bas_agrisi')) emojis.push('🤕');
-            if (sym.customSymptoms.includes('sivilce')) emojis.push('✨');
+          // 10. Özel Belirtiler & Aşerme
+          if (sym.customSymptoms && Array.isArray(sym.customSymptoms)) {
+            sym.customSymptoms.forEach(cs => {
+              const text = String(cs);
+              if (text.includes('🤢') || text.toLowerCase().includes('bulanti')) emojis.push('🤢');
+              else if (text.includes('🎈') || text.toLowerCase().includes('siskinlik')) emojis.push('🎈');
+              else if (text.includes('🍫') || text.includes('🍓') || text.toLowerCase().includes('tatli') || text.toLowerCase().includes('seker')) emojis.push('🍫');
+              else if (text.includes('✨') || text.toLowerCase().includes('sivilce')) emojis.push('✨');
+              else if (text.includes('🔥') || text.toLowerCase().includes('sicak')) emojis.push('🔥');
+              else if (text.includes('🥱') || text.toLowerCase().includes('yorgunluk')) emojis.push('🥱');
+              else if (text.includes('💫') || text.toLowerCase().includes('donme')) emojis.push('💫');
+              else if (text.includes('🍕') || text.toLowerCase().includes('istah')) emojis.push('🍕');
+              else {
+                // Emojiyi regex ile ayıkla
+                const match = text.match(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/u);
+                if (match) emojis.push(match[0]);
+              }
+            });
           }
         }
       }
+
+      // Emojileri tekilleştir (Maksimum 4 emoji)
+      const uniqueEmojis = Array.from(new Set(emojis)).slice(0, 4);
 
       html += `
         <div class="${classes.join(' ')}" data-date="${dateStr}" title="${dateStr}">
           <div class="cal-day-header">
             <span class="cal-day-main">${i}</span>
             ${cycleDayNum ? `<span class="cal-day-sup">(${cycleDayNum})</span>` : ''}
+            ${isPeriod ? `<span class="cal-day-check-badge">✓</span>` : ''}
           </div>
           
-          <!-- Ruh Hali & Sağlık Emojileri -->
-          <div class="cal-emoji-stack">
-            ${emojis.slice(0, 3).map(e => `<span>${e}</span>`).join('')}
+          <!-- Ruh Hali & Sağlık Emojileri Izgarası -->
+          <div class="cal-emoji-stack ${uniqueEmojis.length === 1 ? 'single-emoji' : ''}">
+            ${uniqueEmojis.map(e => `<span>${e}</span>`).join('')}
           </div>
 
           <!-- Doğurganlık Çiçeği -->
@@ -384,11 +426,22 @@ window.App.Calendar = {
       if (symptoms.intimacy) {
         logChips.push(`<span class="cal-log-chip intimacy">❤️ Birliktelik</span>`);
       }
+      if (symptoms.exercise) {
+        logChips.push(`<span class="cal-log-chip intimacy">🏃‍♀️ Egzersiz</span>`);
+      }
+      if (symptoms.water !== undefined && Number(symptoms.water) > 0) {
+        logChips.push(`<span class="cal-log-chip flow">🥛 ${symptoms.water} Bardak Su</span>`);
+      }
       if (symptoms.temperature) {
         logChips.push(`<span class="cal-log-chip temp">🌡️ Ateş: ${symptoms.temperature}°C</span>`);
       }
       if (symptoms.birthControlTaken) {
         logChips.push(`<span class="cal-log-chip meds">💊 İlaç Alındı</span>`);
+      }
+      if (symptoms.customSymptoms && Array.isArray(symptoms.customSymptoms)) {
+        symptoms.customSymptoms.forEach(cs => {
+          logChips.push(`<span class="cal-log-chip meds">✨ ${cs}</span>`);
+        });
       }
     }
 

@@ -249,11 +249,14 @@
 
     <!-- App Header -->
     <header class="app-header" id="app-header">
-      <div class="header-left">
+      <div class="header-left" style="display: flex; align-items: center; gap: 8px;">
         <button class="btn btn-icon header-back-btn" id="header-back" style="display: none;" aria-label="Geri">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <h1 class="header-title" id="header-title">Döngüm</h1>
+        <div class="header-profile-badge" id="header-profile-badge" title="Profili Düzenle">
+          <div class="profile-avatar-circle" id="header-user-avatar">🌸</div>
+          <span id="header-user-name" style="font-weight: 700; font-size: 0.88rem; color: var(--text-primary);">Döngüm</span>
+        </div>
       </div>
       <div class="header-actions">
         <button class="btn btn-icon" id="header-notification" aria-label="Bildirimler">
@@ -392,6 +395,19 @@
       <section class="screen screen-settings" id="screen-settings" style="display: none;">
         <div class="settings-content" id="settings-content">
           
+          <!-- Grand Profile & Avatar Hero Card -->
+          <div class="settings-profile-hero" id="settings-profile-hero">
+            <div class="settings-avatar-wrapper" id="btn-edit-avatar" title="Fotoğrafı / Avatarı Değiştir">
+              <div class="settings-avatar-img" id="settings-avatar-preview">🌸</div>
+              <div class="settings-avatar-badge">📷</div>
+            </div>
+            <div style="font-weight: 700; font-size: 1.15rem; color: var(--text-primary);" id="settings-profile-display-name">Güzel İnsan 🌸</div>
+            <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px;" id="settings-profile-display-goal">Sancı & Genel Sağlık Modu</div>
+            <button type="button" class="btn btn-sm btn-secondary" id="btn-open-profile-dialog" style="margin-top: 10px; font-size: 0.78rem; border-radius: var(--radius-full); padding: 5px 14px;">
+              ✏️ Profil Resmini & İsmini Düzenle
+            </button>
+          </div>
+
           <!-- Profile & Personalization Section -->
           <div class="settings-section">
             <h3 class="settings-section-title" id="settings-profile-title"></h3>

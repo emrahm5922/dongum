@@ -13,6 +13,9 @@ window.App.Data = {
       darkMode: false,
       language: 'tr',
       onboardingComplete: false,
+      userName: '',
+      userAvatar: '🌸',
+      userAvatarType: 'emoji',
       notifications: {
         periodReminder: true,
         ovulationReminder: true,
@@ -95,6 +98,24 @@ window.App.Data = {
 
   _isObject(item) {
     return (item && typeof item === 'object' && !Array.isArray(item));
+  },
+  
+  // --- Profile methods ---
+  getUserProfile() {
+    if (!this._data) this.load();
+    return {
+      name: this.get('settings.userName') || '',
+      avatar: this.get('settings.userAvatar') || '🌸',
+      avatarType: this.get('settings.userAvatarType') || 'emoji'
+    };
+  },
+
+  setUserProfile(name, avatar, avatarType = 'emoji') {
+    if (!this._data) this.load();
+    this.set('settings.userName', name);
+    this.set('settings.userAvatar', avatar);
+    this.set('settings.userAvatarType', avatarType);
+    this.save();
   },
   
   // --- Period methods ---

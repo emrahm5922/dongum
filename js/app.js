@@ -441,8 +441,8 @@ window.App.Main = (() => {
 
   function updateHeader(screenName) {
     const t = App.I18n.t.bind(App.I18n);
-    const titleEl = document.getElementById('header-title');
     const backBtn = document.getElementById('header-back');
+    const headerUserName = document.getElementById('header-user-name');
     
     const titles = {
       dashboard: 'Döngüm',
@@ -452,7 +452,18 @@ window.App.Main = (() => {
       settings: t('nav.settings')
     };
 
-    if (titleEl) titleEl.textContent = titles[screenName] || 'Döngüm';
+    updateProfileHeaderAndHero();
+
+    if (screenName === 'dashboard') {
+      const profile = (App.Data && App.Data.getUserProfile) ? App.Data.getUserProfile() : {};
+      if (headerUserName) {
+        headerUserName.textContent = profile.name ? `${profile.name} 🌸` : 'Döngüm';
+      }
+    } else {
+      if (headerUserName) {
+        headerUserName.textContent = titles[screenName] || 'Döngüm';
+      }
+    }
     
     // Geri butonunu göster/gizle (dashboard hariç)
     if (backBtn) {
@@ -1764,12 +1775,202 @@ window.App.Main = (() => {
   }
 
   // ================================
+  // USER PROFILE & AVATAR MANAGER
+  // ================================
+  function updateProfileHeaderAndHero() {
+    const profile = (App.Data && App.Data.getUserProfile) ? App.Data.getUserProfile() : { name: '', avatar: '🌸', avatarType: 'emoji' };
+    const userGoal = (App.Data && App.Data.get) ? (App.Data.get('settings.userGoal') || 'track') : 'track';
+
+    const goalNames = {
+      track: '🌸 Sancı & Genel Sağlık Modu',
+      ttc: '👶 Hamilelik & Bebek Planlama',
+      prevent: '🛡️ Doğurganlık & Korunma Modu'
+    };
+
+    // Header Avatar & Name
+    const headerAvatarEl = document.getElementById('header-user-avatar');
+    if (headerAvatarEl) {
+      if (profile.avatarType === 'image' && profile.avatar) {
+        headerAvatarEl.innerHTML = `<img src="${profile.avatar}" alt="Profil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+      } else {
+        headerAvatarEl.innerHTML = profile.avatar || '🌸';
+      }
+    }
+
+    // Settings Hero Avatar
+    const settingsAvatarEl = document.getElementById('settings-avatar-preview');
+    if (settingsAvatarEl) {
+      if (profile.avatarType === 'image' && profile.avatar) {
+        settingsAvatarEl.innerHTML = `<img src="${profile.avatar}" alt="Profil" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+      } else {
+        settingsAvatarEl.innerHTML = profile.avatar || '🌸';
+      }
+    }
+
+    // Settings Display Name & Goal
+    const settingsNameEl = document.getElementById('settings-profile-display-name');
+    if (settingsNameEl) {
+      settingsNameEl.textContent = profile.name ? `${profile.name} 🌸` : 'Güzel İnsan 🌸';
+    }
+    const settingsGoalEl = document.getElementById('settings-profile-display-goal');
+    if (settingsGoalEl) {
+      settingsGoalEl.textContent = goalNames[userGoal] || goalNames.track;
+    }
+  }
+
+  function showProfileModal() {
+    const profile = (App.Data && App.Data.getUserProfile) ? App.Data.getUserProfile() : { name: '', avatar: '🌸', avatarType: 'emoji' };
+    const cuteAvatars = ['🌸', '🦋', '👑', '🐱', '🧘‍♀️', '🌿', '🌙', '🤰', '🌺', '🦄', '🍓', '✨', '🦩', '🎀', '🐣', '🌻', '🥑', '🍵'];
+
+    let tempAvatar = profile.avatar || '🌸';
+    let tempAvatarType = profile.avatarType || 'emoji';
+
+    const modalBody = document.getElementById('modal-body');
+    const modalFooter = document.getElementById('modal-footer');
+    if (!modalBody) return;
+
+    modalBody.innerHTML = `
+      <div style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+        <!-- Profil Önizleme -->
+        <div id="modal-avatar-preview-box" style="width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--accent-period); box-shadow: 0 4px 14px rgba(212, 85, 107, 0.35); display: flex; align-items: center; justify-content: center; font-size: 2.8rem; overflow: hidden; background: var(--surface); margin-bottom: 14px;">
+          ${tempAvatarType === 'image' ? `<img src="${tempAvatar}" style="width: 100%; height: 100%; object-fit: cover;">` : tempAvatar}
+        </div>
+
+        <!-- Galeriden Fotoğraf Yükle Butonu -->
+        <input type="file" id="modal-avatar-file-input" accept="image/*" style="display: none;">
+        <button type="button" class="btn btn-primary btn-sm" id="btn-upload-photo" style="border-radius: var(--radius-full); padding: 8px 18px; font-weight: 700; font-size: 0.84rem; display: flex; align-items: center; gap: 6px; margin-bottom: 16px;">
+          <span>📷</span>
+          <span>Galeriden / Kameradan Fotoğraf Seç</span>
+        </button>
+
+        <!-- İsim / Hitap Alanı -->
+        <div style="width: 100%; text-align: left; margin-bottom: 16px;">
+          <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; display: block;">
+            İsminiz / Size Nasıl Hitap Edelim?
+          </label>
+          <input type="text" id="modal-profile-name-input" class="form-input" placeholder="Örn: Ayşe, Merve, Prenses..." value="${profile.name || ''}" style="width: 100%; padding: 10px 14px; border-radius: var(--radius-lg); border: 1.5px solid var(--border); font-size: 0.95rem; font-weight: 600; background: var(--surface); color: var(--text-primary);">
+        </div>
+
+        <!-- Veya Sevimli Avatarlardan Seç -->
+        <div style="width: 100%; text-align: left;">
+          <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px;">
+            Veya Hazır Sevimli Bir Avatar Seçin:
+          </div>
+          <div class="avatar-grid-picker" id="modal-avatar-grid">
+            ${cuteAvatars.map(av => `
+              <div class="avatar-grid-item ${(tempAvatarType === 'emoji' && tempAvatar === av) ? 'active' : ''}" data-avatar="${av}">
+                ${av}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+
+    if (modalFooter) {
+      modalFooter.innerHTML = `
+        <button type="button" class="btn btn-ghost" id="btn-remove-avatar" style="color: var(--text-secondary); font-size: 0.8rem;">
+          Varsayılana Sıfırla
+        </button>
+        <button type="button" class="btn btn-primary" id="btn-save-profile" style="padding: 8px 22px; font-weight: 700;">
+          Kaydet ✓
+        </button>
+      `;
+    }
+
+    const previewBox = modalBody.querySelector('#modal-avatar-preview-box');
+    const fileInput = modalBody.querySelector('#modal-avatar-file-input');
+    const uploadBtn = modalBody.querySelector('#btn-upload-photo');
+    const nameInput = modalBody.querySelector('#modal-profile-name-input');
+    const gridItems = modalBody.querySelectorAll('.avatar-grid-item');
+
+    // Galeri / Kamera Yükleme Tetikleyici
+    uploadBtn?.addEventListener('click', () => fileInput?.click());
+
+    // Fotoğraf Seçildiğinde (Sıkıştırarak Base64 Yap)
+    fileInput?.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          // Offscreen Canvas ile 256x256 kare sıkıştırma
+          const canvas = document.createElement('canvas');
+          const maxDim = 256;
+          canvas.width = maxDim;
+          canvas.height = maxDim;
+          const ctx = canvas.getContext('2d');
+
+          const minSide = Math.min(img.width, img.height);
+          const sx = (img.width - minSide) / 2;
+          const sy = (img.height - minSide) / 2;
+
+          ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, maxDim, maxDim);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+          tempAvatar = compressedDataUrl;
+          tempAvatarType = 'image';
+
+          if (previewBox) {
+            previewBox.innerHTML = `<img src="${tempAvatar}" style="width: 100%; height: 100%; object-fit: cover;">`;
+          }
+          gridItems.forEach(item => item.classList.remove('active'));
+          App.Utils.showToast('Fotoğraf seçildi 📷', 'success');
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Hazır Avatar Seçimi
+    gridItems.forEach(item => {
+      item.addEventListener('click', () => {
+        gridItems.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        const selected = item.getAttribute('data-avatar');
+        tempAvatar = selected;
+        tempAvatarType = 'emoji';
+        if (previewBox) {
+          previewBox.innerHTML = selected;
+        }
+      });
+    });
+
+    // Varsayılana Sıfırla
+    modalFooter?.querySelector('#btn-remove-avatar')?.addEventListener('click', () => {
+      tempAvatar = '🌸';
+      tempAvatarType = 'emoji';
+      if (nameInput) nameInput.value = '';
+      if (previewBox) previewBox.innerHTML = '🌸';
+      gridItems.forEach(i => i.classList.toggle('active', i.getAttribute('data-avatar') === '🌸'));
+      App.Utils.showToast('Profil sıfırlandı ✨', 'info');
+    });
+
+    // Kaydet Butonu
+    modalFooter?.querySelector('#btn-save-profile')?.addEventListener('click', () => {
+      const newName = nameInput ? nameInput.value.trim() : '';
+      if (App.Data && App.Data.setUserProfile) {
+        App.Data.setUserProfile(newName, tempAvatar, tempAvatarType);
+      }
+      updateProfileHeaderAndHero();
+      hideModal();
+      App.Utils.showToast('Profiliniz kaydedildi 🌸', 'success');
+    });
+
+    showModal('🌸 Profil Resmi & İsmi');
+  }
+
+  // ================================
   // SETTINGS
   // ================================
   function renderSettings() {
     const t = App.I18n.t.bind(App.I18n);
     const data = App.Data.load();
     const settings = data.settings;
+
+    updateProfileHeaderAndHero();
 
     // Değerleri doldur
     setText('settings-age-value', settings.userAge || 25);
@@ -2046,6 +2247,11 @@ window.App.Main = (() => {
         App.Export.showRecoveryKeyModal();
       }
     });
+
+    // Profil / Avatar Düzenleme Dinleyicileri
+    addClick('header-profile-badge', () => showProfileModal());
+    addClick('btn-edit-avatar', () => showProfileModal());
+    addClick('btn-open-profile-dialog', () => showProfileModal());
 
     // Destek & Geri Bildirim
     addClick('settings-feedback-btn', () => {

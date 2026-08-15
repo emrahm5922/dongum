@@ -553,25 +553,200 @@
    5. Calendar
    ========================================================================== */
 .calendar-container, .calendar-card {
-  background-color: #FDF0F3;
+  background-color: #F6D8DE;
   background-image: url('../images/calendar-flower-bg.svg');
   background-size: cover;
-  background-position: center;
+  background-position: center top;
   background-repeat: no-repeat;
-  border-radius: var(--radius-2xl);
-  padding: var(--space-md);
-  box-shadow: 0 8px 24px rgba(212, 85, 107, 0.15);
-  border: 1px solid rgba(212, 85, 107, 0.2);
-  margin-bottom: var(--space-lg);
+  border-radius: 0;
+  padding: 0 4px 14px;
+  box-shadow: none;
+  border: none;
+  margin-bottom: var(--space-md);
   position: relative;
   overflow: hidden;
 }
 
-.calendar-header {
+/* Top Segmented Tab matching Screenshot (Yıl | Ay) */
+.cal-top-segmented-bar {
+  background: #E87A8D;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: -14px -14px 12px -14px;
+}
+.cal-segmented-pill-box {
+  display: inline-flex;
+  background: #FFFFFF;
+  padding: 2px;
+  border-radius: var(--radius-full);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+.cal-segmented-pill {
+  padding: 4px 18px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: #333333;
+  transition: all 0.15s ease;
+}
+.cal-segmented-pill.active {
+  background: #D4556B;
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(212, 85, 107, 0.35);
+}
+
+/* Weekday Row matching Screenshot */
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 0.82rem;
+  color: #2D3142;
+  font-weight: 700;
+  margin-bottom: 6px;
+  padding: 0 2px;
+}
+
+/* Month Title Row (Right-Aligned) */
+.cal-month-header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-md);
+  padding: 4px 8px 8px;
+}
+.cal-month-title-right {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1A1A1A;
+  margin-left: auto;
+}
+
+/* Calendar Grid & Day Cards matching Screenshot */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  padding: 0 2px;
+}
+
+.cal-day {
+  min-height: 64px;
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  padding: 4px 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.cal-day:active {
+  transform: scale(0.95);
+}
+
+/* Selected Day: Crisp Black Outline Border */
+.cal-day.selected {
+  border: 2px solid #222222 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+  z-index: 2;
+}
+
+/* Active Period Day: Solid Coral/Terra-Cotta Card */
+.cal-day.period {
+  background: #D96B58 !important;
+  border-color: #D96B58 !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 6px rgba(217, 107, 88, 0.35);
+}
+.cal-day.period .cal-day-sup {
+  color: rgba(90, 20, 20, 0.85);
+  font-weight: 800;
+}
+
+/* Predicted Period Day: Horizontal Red-Pink Stripes */
+.cal-day.predicted-period {
+  background: repeating-linear-gradient(
+    0deg,
+    #FFFFFF,
+    #FFFFFF 3.5px,
+    #EE7A8C 3.5px,
+    #EE7A8C 5.5px
+  ) !important;
+  border: 1px solid #EE7A8C !important;
+  color: #D4556B !important;
+  font-weight: 800;
+}
+.cal-day.predicted-period .cal-day-sup {
+  color: #D4556B;
+}
+
+/* Day Header: Number + Superscript Cycle Day */
+.cal-day-header {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  padding-left: 4px;
+  line-height: 1;
+  position: relative;
+}
+.cal-day-main {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: inherit;
+}
+.cal-day-sup {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #666666;
+  margin-left: 1px;
+}
+
+/* Emoji Stack inside Calendar Cells */
+.cal-emoji-stack {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 1px;
+  margin-top: 4px;
+  font-size: 0.76rem;
+  line-height: 1.1;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Fertile & Ovulation Petal Flower */
+.cal-fertile-flower {
+  color: #8E44AD;
+  font-size: 0.72rem;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+/* Bottom Status Ribbon matching Screenshot */
+.cal-bottom-status-ribbon {
+  background: #E87A8D;
+  color: #FFFFFF;
+  font-size: 0.86rem;
+  font-weight: 600;
+  padding: 10px 14px;
+  margin: 14px -14px -14px -14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .calendar-weekdays {

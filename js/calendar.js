@@ -1,19 +1,27 @@
 window.App = window.App || {};
 
 /**
- * Gelişmiş Takvim Modülü (Advanced Interactive Calendar with Long-Press Day Details Popup)
- * - İstenen güne BASILI TUTULDUĞUNDA (Long-Press / Uzun Basma ~450ms) o gün kaydedilen tüm ruh hali,
- *   ağrı, akıntı, ilaç, su, birliktelik ve notları içeren sevimli bir hızlı önizleme penceresi açılır.
- * - İstenen günlere doğrudan dokunarak veya tik kutucuğuna basarak TEK DOKUNUŞLA TİK (✓) koyma / kaldırma,
- * - Günlük bölümünden girilen TÜM kategorilerin (Ruh hali, Ağrı, Kanama, Akıntı, İlaç, Birliktelik, Spor, Su, Uyku, Aşerme/Özel belirtiler) emojilerini takvim kutucuğuna işler,
- * - Alt durum bilgi bandı ve aylar arası kıyaslama kartı.
+ * Gelişmiş Takvim Modülü (Exact Screenshot-Pixel-Perfect Interactive Calendar)
+ * - Referans görseldeki gibi:
+ *   - Üst pembe barda [ Yıl | Ay ] hap butonları
+ *   - Sağ tarafta koyu kalın ay başlığı (Örn: Nisan 2026)
+ *   - Pzt, Sa, Çar, Per, Cm, Cmt, Pz gün başlıkları
+ *   - Beyaz ve kiremit/mercan dolgulu uzun dikdörtgen gün kartları
+ *   - Tahmini günlerde yatay kırmızı/pembe çizgili desenli kartlar
+ *   - Hücre içi gün sayısı ve üste bindirilmiş döngü günü: 27(26)
+ *   - Günlükten girilen ruh hali, sancı, akıntı, tatlı, ilaç vb. emojiler hücre içine yan yana dizilir
+ *   - Seçili günün etrafında siyah 2px belirgin kutu çerçevesi
+ *   - Doğurganlık günlerinde mor 3 yapraklı çiçek simgesi
+ *   - Alt pembe bantta: "Kalan günler: 1. Hamile kalma şansı: düşük.  ⋮"
+ *   - Uzun basıldığında (Long-Press ~450ms) o günün detaylarını gösteren ufak pencere açılır.
+ *   - Tek dokunuşla regl tiki açılır/kapanır.
  */
 window.App.Calendar = {
   currentMonth: new Date(),
   selectedDate: null,
   container: null,
   viewMode: 'month', // 'month' | 'year'
-  directCheckMode: true, // Dokunarak doğrudan regl işaretleme modu
+  directCheckMode: true,
 
   render(container) {
     this.container = container;
@@ -28,62 +36,57 @@ window.App.Calendar = {
     const today = new Date();
     const todayStr = window.App.Utils ? window.App.Utils.toISODateString(today) : '';
 
-    const monthName = window.App.Utils && typeof window.App.Utils.formatMonthYear === 'function'
-      ? window.App.Utils.formatMonthYear(this.currentMonth)
-      : `${year}-${String(month + 1).padStart(2, '0')}`;
-
-    const t = (key, fallback) => (window.App.I18n ? window.App.I18n.t(key) : fallback);
+    const trMonths = [
+      'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+      'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+    ];
+    const monthTitle = `${trMonths[month]} ${year}`;
 
     // Döngü ve tahmin bilgisi
     const cycleInfo = window.App.Cycle ? window.App.Cycle.getCycleInfo() : null;
-    const daysUntilPeriod = (cycleInfo && cycleInfo.daysUntilNextPeriod != null) ? cycleInfo.daysUntilNextPeriod : 0;
+    const daysUntilPeriod = (cycleInfo && cycleInfo.daysUntilNextPeriod != null) ? cycleInfo.daysUntilNextPeriod : 1;
     
     // Doğurganlık durumu
     const isFertileNow = cycleInfo ? cycleInfo.isFertileWindow : false;
-    const fertilityText = isFertileNow ? 'Yüksek 🌸' : 'Düşük 🛡️';
+    const fertilityText = isFertileNow ? 'yüksek 🌸' : 'düşük.';
 
     let html = `
       <div class="calendar-card">
 
-        <!-- 1. ÜST KONTROL ÇUBUĞU (Yıl | Ay ve Hızlı Tik Modu) -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-          <div style="display: inline-flex; background: var(--bg-secondary); padding: 3px; border-radius: var(--radius-full); border: 1px solid var(--border);">
-            <button type="button" class="btn btn-sm ${this.viewMode === 'year' ? 'btn-primary' : 'btn-ghost'}" id="btn-view-year" style="padding: 4px 14px; font-size: 0.76rem; font-weight: 700; border-radius: var(--radius-full);">Yıl</button>
-            <button type="button" class="btn btn-sm ${this.viewMode === 'month' ? 'btn-primary' : 'btn-ghost'}" id="btn-view-month" style="padding: 4px 14px; font-size: 0.76rem; font-weight: 700; border-radius: var(--radius-full);">Ay</button>
+        <!-- 1. ÜST PEMBE BAR (Yıl | Ay Butonları) -->
+        <div class="cal-top-segmented-bar">
+          <div class="cal-segmented-pill-box">
+            <button type="button" class="cal-segmented-pill ${this.viewMode === 'year' ? 'active' : ''}" id="btn-view-year">Yıl</button>
+            <button type="button" class="cal-segmented-pill ${this.viewMode === 'month' ? 'active' : ''}" id="btn-view-month">Ay</button>
           </div>
-
-          <!-- Doğrudan Dokunarak Tik İşaretleme Modu Butonu -->
-          <button type="button" id="btn-toggle-quick-check" class="btn btn-sm ${this.directCheckMode ? 'btn-primary' : 'btn-secondary'}" style="font-size: 0.76rem; padding: 5px 12px; border-radius: var(--radius-full); font-weight: 700; display: flex; align-items: center; gap: 5px;">
-            <span>🩸</span>
-            <span>${this.directCheckMode ? 'Dokun ve Tik Koy (Açık ✓)' : 'Dokun ve Tik Koy (Kapalı)'}</span>
-          </button>
         </div>
 
-        <!-- 2. AY BAŞLIĞI & GEÇİŞLER -->
-        <div class="calendar-header" style="margin-bottom: 12px;">
-          <button type="button" class="btn-cal-nav prev-month" aria-label="Önceki Ay">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <h2 class="month-title" style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary);">${monthName}</h2>
-          <button type="button" class="btn-cal-nav next-month" aria-label="Sonraki Ay">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-          <button type="button" class="btn-cal-today today-btn" style="padding: 4px 10px; font-size: 0.75rem; border-radius: var(--radius-full);">${t('calendar.today', 'Bugün')}</button>
+        <!-- 2. AY BAŞLIĞI VE GEÇİŞ OKLARI (Sağa Yaslı Ay Başlığı) -->
+        <div class="cal-month-header-row">
+          <div style="display: flex; gap: 4px; align-items: center;">
+            <button type="button" class="btn-cal-nav prev-month" aria-label="Önceki Ay" style="background: rgba(255,255,255,0.7); border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button type="button" class="btn-cal-nav next-month" aria-label="Sonraki Ay" style="background: rgba(255,255,255,0.7); border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+          <div class="cal-month-title-right">${monthTitle}</div>
         </div>
 
-        <!-- 3. HAFTANIN GÜNLERİ -->
-        <div class="calendar-weekdays" style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px;">
-          <div class="weekday">Pzt</div>
-          <div class="weekday">Sal</div>
-          <div class="weekday">Çar</div>
-          <div class="weekday">Per</div>
-          <div class="weekday">Cum</div>
-          <div class="weekday">Cmt</div>
-          <div class="weekday">Paz</div>
+        <!-- 3. HAFTANIN GÜNLERİ (Görsel ile Birebir) -->
+        <div class="calendar-weekdays">
+          <div>Pzt</div>
+          <div>Sa</div>
+          <div>Çar</div>
+          <div>Per</div>
+          <div>Cm</div>
+          <div>Cmt</div>
+          <div>Pz</div>
         </div>
 
-        <!-- 4. GÜN IZGARASI (GENİŞ KUTUCUKLAR, TİK İŞARETİ & TÜM EMOJİLER) -->
-        <div class="calendar-grid" style="gap: 4px;">
+        <!-- 4. GÜN IZGARASI -->
+        <div class="calendar-grid">
     `;
 
     const firstDay = new Date(year, month, 1).getDay();
@@ -93,7 +96,13 @@ window.App.Calendar = {
     // Önceki ayın günleri
     const prevMonthDays = new Date(year, month, 0).getDate();
     for (let i = startOffset - 1; i >= 0; i--) {
-      html += `<div class="cal-day other-month" style="opacity: 0.35;"><div class="cal-day-header"><span class="cal-day-main">${prevMonthDays - i}</span></div></div>`;
+      html += `
+        <div class="cal-day other-month" style="opacity: 0.35; background: rgba(255,255,255,0.4);">
+          <div class="cal-day-header">
+            <span class="cal-day-main">${prevMonthDays - i}</span>
+          </div>
+        </div>
+      `;
     }
 
     // Bu ayın günleri
@@ -149,9 +158,9 @@ window.App.Calendar = {
           const moodEmojis = {
             great: '😄',
             good: '🥰',
-            okay: '😐',
+            okay: '😎',
             bad: '😔',
-            terrible: '😢'
+            terrible: '😷'
           };
           if (sym.mood && moodEmojis[sym.mood]) emojis.push(moodEmojis[sym.mood]);
 
@@ -187,9 +196,9 @@ window.App.Calendar = {
 
           // 6. Yaşam Tarzı (Birliktelik & Spor)
           if (sym.intimacy) emojis.push('❤️');
-          if (sym.exercise) emojis.push('🏃‍♀️');
+          if (sym.exercise) emojis.push('🧘');
 
-          // 7. Su Tüketimi (Yeterli / Bol Su)
+          // 7. Su Tüketimi
           if (sym.water !== undefined && Number(sym.water) >= 6) {
             emojis.push('🥛');
           }
@@ -211,7 +220,11 @@ window.App.Calendar = {
               const text = String(cs);
               if (text.includes('🤢') || text.toLowerCase().includes('bulanti')) emojis.push('🤢');
               else if (text.includes('🎈') || text.toLowerCase().includes('siskinlik')) emojis.push('🎈');
-              else if (text.includes('🍫') || text.includes('🍓') || text.toLowerCase().includes('tatli') || text.toLowerCase().includes('seker')) emojis.push('🍫');
+              else if (text.includes('🍫') || text.toLowerCase().includes('cikolata')) emojis.push('🍫');
+              else if (text.includes('🍓') || text.toLowerCase().includes('tatli')) emojis.push('🍓');
+              else if (text.includes('🍰') || text.toLowerCase().includes('pasta')) emojis.push('🍰');
+              else if (text.includes('🍐') || text.toLowerCase().includes('meyve')) emojis.push('🍐');
+              else if (text.includes('💄') || text.toLowerCase().includes('bakim')) emojis.push('💄');
               else if (text.includes('✨') || text.toLowerCase().includes('sivilce')) emojis.push('✨');
               else if (text.includes('🔥') || text.toLowerCase().includes('sicak')) emojis.push('🔥');
               else if (text.includes('🥱') || text.toLowerCase().includes('yorgunluk')) emojis.push('🥱');
@@ -226,25 +239,22 @@ window.App.Calendar = {
         }
       }
 
-      // Emojileri tekilleştir (Maksimum 4 emoji)
-      const uniqueEmojis = Array.from(new Set(emojis)).slice(0, 4);
+      // Emojileri tekilleştir (Maksimum 3 emoji yan yana)
+      const uniqueEmojis = Array.from(new Set(emojis)).slice(0, 3);
 
       html += `
-        <div class="${classes.join(' ')}" data-date="${dateStr}" title="${dateStr} (Detaylar için basılı tutun)">
+        <div class="${classes.join(' ')}" data-date="${dateStr}" title="${dateStr}">
           <div class="cal-day-header">
             <span class="cal-day-main">${i}</span>
             ${cycleDayNum ? `<span class="cal-day-sup">(${cycleDayNum})</span>` : ''}
-            
-            <!-- Her Hücrede Doğrudan Tıklanabilir Tik Kutucuğu -->
-            <div class="cal-day-check-badge" data-check-date="${dateStr}" title="Regl İşaretle / Kaldır">✓</div>
           </div>
           
-          <!-- Ruh Hali & Sağlık Emojileri Izgarası -->
-          <div class="cal-emoji-stack ${uniqueEmojis.length === 1 ? 'single-emoji' : ''}">
+          <!-- Ruh Hali & Sağlık Emojileri -->
+          <div class="cal-emoji-stack">
             ${uniqueEmojis.map(e => `<span>${e}</span>`).join('')}
           </div>
 
-          <!-- Doğurganlık Çiçeği -->
+          <!-- Doğurganlık Çiçeği (Görseldeki Gibi Mor Küçük Çiçek) -->
           ${isFertile && !isPeriod ? `<div class="cal-fertile-flower">🌸</div>` : ''}
         </div>
       `;
@@ -254,7 +264,13 @@ window.App.Calendar = {
     const totalCells = startOffset + daysInMonth;
     const remainingCells = 42 - totalCells;
     for (let i = 1; i <= remainingCells; i++) {
-      html += `<div class="cal-day other-month" style="opacity: 0.35;"><div class="cal-day-header"><span class="cal-day-main">${i}</span></div></div>`;
+      html += `
+        <div class="cal-day other-month" style="opacity: 0.35; background: rgba(255,255,255,0.4);">
+          <div class="cal-day-header">
+            <span class="cal-day-main">${i}</span>
+          </div>
+        </div>
+      `;
     }
 
     html += `
@@ -263,7 +279,7 @@ window.App.Calendar = {
         <!-- 5. ALT DURUM BİLGİ ŞERİDİ (Görsel 2 ile Birebir) -->
         <div class="cal-bottom-status-ribbon">
           <span>Kalan günler: <strong>${daysUntilPeriod}</strong>. Hamile kalma şansı: <strong>${fertilityText}</strong></span>
-          <span style="font-size: 0.75rem; opacity: 0.85;">💡 Günün detayları için güne <strong>basılı tutun</strong></span>
+          <span style="font-size: 1.1rem; cursor: pointer;">⋮</span>
         </div>
 
         <!-- 6. AYLAR ARASI ADET SÜRESİ KIYASLAMA KARTI -->
@@ -297,7 +313,7 @@ window.App.Calendar = {
     let phaseBadgeColor = 'var(--accent-phase)';
     if (classification.isPeriod) {
       phaseName = '🩸 Regl Kanaması (İşaretli ✓)';
-      phaseBadgeColor = '#E57373';
+      phaseBadgeColor = '#D96B58';
     } else if (classification.isOvulation) {
       phaseName = '🌟 Yumurtlama Günü';
       phaseBadgeColor = 'var(--accent-ovulation)';
@@ -306,7 +322,7 @@ window.App.Calendar = {
       phaseBadgeColor = 'var(--accent-fertile)';
     } else if (classification.isPredictedPeriod) {
       phaseName = '📅 Tahmini Regl';
-      phaseBadgeColor = '#E57373';
+      phaseBadgeColor = '#D96B58';
     }
 
     const sym = (window.App.Data && typeof window.App.Data.getSymptoms === 'function')
@@ -316,9 +332,9 @@ window.App.Calendar = {
     const moodNames = {
       great: '😄 Harika & Enerjik',
       good: '🥰 Mutlu & Romantik',
-      okay: '😐 Normal / Dengeli',
+      okay: '😎 Normal / Zinde',
       bad: '😔 Yorgun & Hassas',
-      terrible: '😢 Çok Duygusal'
+      terrible: '😷 Hasta / Kötü'
     };
 
     const painNames = {
@@ -328,32 +344,9 @@ window.App.Calendar = {
       severe: 'Şiddetli Sancı 🔥'
     };
 
-    const flowNames = {
-      spotting: '💧 Lekelenme',
-      light: '● Hafif Kanama',
-      medium: '●● Orta Kanama',
-      heavy: '●●● Yoğun Kanama'
-    };
-
-    const dischargeNames = {
-      sticky: 'Yapışkan',
-      creamy: 'Kremsi / Beyaz',
-      eggWhite: 'Yumurta Akı (Doğurgan)',
-      watery: 'Sulu'
-    };
-
-    const sleepNames = {
-      terrible: '🌑 Çok Kötü / Uykusuzluk',
-      bad: '🌘 Kötü Uyku',
-      okay: '🌗 Normal',
-      good: '🌖 İyi Uyku',
-      great: '🌕 Harika & Derin Uyku'
-    };
-
     let itemsHtml = '';
 
     if (sym) {
-      // 1. Ruh Hali
       if (sym.mood && moodNames[sym.mood]) {
         itemsHtml += `
           <div class="day-preview-item">
@@ -366,113 +359,54 @@ window.App.Calendar = {
         `;
       }
 
-      // 2. Ağrı / Sancı
       if (sym.painLevel && sym.painLevel !== 'none') {
-        const areaLabels = {
-          abdomen: 'Karın/Kramp',
-          lowerBack: 'Bel',
-          head: 'Baş Ağrısı',
-          breast: 'Göğüs Hassasiyeti',
-          legs: 'Bacak/Eklem',
-          upperBack: 'Sırt'
-        };
-        const areasText = (sym.painAreas && sym.painAreas.length > 0)
-          ? ` (${sym.painAreas.map(a => areaLabels[a] || a).join(', ')})`
-          : '';
-
         itemsHtml += `
           <div class="day-preview-item">
             <div class="day-preview-icon">⚡</div>
             <div class="day-preview-content">
-              <strong>Ağrı & Rahatsızlık:</strong>
-              <span>${painNames[sym.painLevel] || sym.painLevel}${areasText}</span>
+              <strong>Ağrı & Sancı:</strong>
+              <span>${painNames[sym.painLevel] || sym.painLevel}</span>
             </div>
           </div>
         `;
       }
 
-      // 3. Kanama & Akıntı
       if (sym.flow && sym.flow !== 'none') {
         itemsHtml += `
           <div class="day-preview-item">
             <div class="day-preview-icon">🩸</div>
             <div class="day-preview-content">
-              <strong>Kanama Yoğunluğu:</strong>
-              <span>${flowNames[sym.flow] || sym.flow}</span>
+              <strong>Kanama / Akıntı:</strong>
+              <span>${sym.flow === 'spotting' ? '💧 Lekelenme' : '● Kanama Var'}</span>
             </div>
           </div>
         `;
       }
 
-      // 4. Servikal Akıntı
-      if (sym.discharge && sym.discharge !== 'none') {
-        itemsHtml += `
-          <div class="day-preview-item">
-            <div class="day-preview-icon">💧</div>
-            <div class="day-preview-content">
-              <strong>Vajinal Akıntı:</strong>
-              <span>${dischargeNames[sym.discharge] || sym.discharge}</span>
-            </div>
-          </div>
-        `;
-      }
-
-      // 5. İlaç / Doğum Kontrol
       if (sym.birthControlTaken || (sym.medications && sym.medications.length > 0)) {
         itemsHtml += `
           <div class="day-preview-item">
             <div class="day-preview-icon">💊</div>
             <div class="day-preview-content">
               <strong>İlaç / Doğum Kontrol:</strong>
-              <span>Doğum kontrol veya takviye ilaç alındı ✓</span>
+              <span>İlaç alındı ✓</span>
             </div>
           </div>
         `;
       }
 
-      // 6. Yaşam Tarzı
       if (sym.intimacy || sym.exercise) {
-        let acts = [];
-        if (sym.intimacy) acts.push('❤️ Cinsel Birliktelik');
-        if (sym.exercise) acts.push('🏃‍♀️ Egzersiz / Spor');
         itemsHtml += `
           <div class="day-preview-item">
-            <div class="day-preview-icon">🏃‍♀️</div>
+            <div class="day-preview-icon">❤️</div>
             <div class="day-preview-content">
               <strong>Aktivite & Yaşam:</strong>
-              <span>${acts.join(' • ')}</span>
+              <span>${[sym.intimacy ? 'Birliktelik' : '', sym.exercise ? 'Egzersiz' : ''].filter(Boolean).join(' • ')}</span>
             </div>
           </div>
         `;
       }
 
-      // 7. Su Tüketimi
-      if (sym.water !== undefined && Number(sym.water) > 0) {
-        itemsHtml += `
-          <div class="day-preview-item">
-            <div class="day-preview-icon">🥛</div>
-            <div class="day-preview-content">
-              <strong>Su Tüketimi:</strong>
-              <span>${sym.water} Bardak (~${(Number(sym.water) * 0.25).toFixed(1)} Litre)</span>
-            </div>
-          </div>
-        `;
-      }
-
-      // 8. Uyku
-      if (sym.sleep && sleepNames[sym.sleep]) {
-        itemsHtml += `
-          <div class="day-preview-item">
-            <div class="day-preview-icon">🌙</div>
-            <div class="day-preview-content">
-              <strong>Uyku Kalitesi:</strong>
-              <span>${sleepNames[sym.sleep]}</span>
-            </div>
-          </div>
-        `;
-      }
-
-      // 9. Özel Belirtiler & Aşerme
       if (sym.customSymptoms && sym.customSymptoms.length > 0) {
         itemsHtml += `
           <div class="day-preview-item">
@@ -485,10 +419,9 @@ window.App.Calendar = {
         `;
       }
 
-      // 10. Günlük Notu
       if (sym.notes) {
         itemsHtml += `
-          <div class="day-preview-item" style="border-left: 3px solid var(--accent-period);">
+          <div class="day-preview-item" style="border-left: 3px solid #D4556B;">
             <div class="day-preview-icon">📝</div>
             <div class="day-preview-content">
               <strong>Günlük Notu:</strong>
@@ -504,7 +437,7 @@ window.App.Calendar = {
         <div style="text-align: center; padding: 20px 10px; color: var(--text-secondary); font-size: 0.85rem;">
           <div style="font-size: 2rem; margin-bottom: 6px;">📝</div>
           Bu gün için henüz ruh hali veya belirti kaydı girilmemiş.<br>
-          Aşağıdaki <strong>"Günlüğü Düzenle"</strong> butonuna basarak kolayca ekleyebilirsiniz.
+          Aşağıdaki butona basarak kolayca ekleyebilirsiniz.
         </div>
       `;
     }
@@ -514,7 +447,6 @@ window.App.Calendar = {
     modal.className = 'day-preview-modal-overlay';
     modal.innerHTML = `
       <div class="day-preview-modal-card">
-        <!-- Modal Başlığı -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border);">
           <div>
             <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 0 0 4px 0;">${formattedDate}</h3>
@@ -525,18 +457,16 @@ window.App.Calendar = {
           <button type="button" class="btn btn-sm btn-ghost btn-close-preview" style="font-size: 1.2rem; line-height: 1; padding: 4px 8px; border-radius: 50%;">✕</button>
         </div>
 
-        <!-- Kaydedilen Tüm Kategorilerin Listesi -->
         <div style="margin-bottom: 14px;">
           ${itemsHtml}
         </div>
 
-        <!-- Butonlar -->
         <div style="display: flex; gap: 8px; flex-direction: column;">
           <button type="button" class="btn btn-primary btn-sm btn-edit-this-day" style="width: 100%; padding: 9px; font-weight: 700;">
             ✏️ Ruh Hali & Belirti Düzenle
           </button>
           <button type="button" class="btn btn-secondary btn-sm btn-toggle-period-quick" style="width: 100%; padding: 9px; font-weight: 700;">
-            ${isPeriod ? '✓ Regl İşaretini Kaldır' : '🩸 Bu Günü Regl Olarak İşaretle (✓)'}
+            ${isPeriod ? '✓ Regl İşaretini Kaldır' : '🩸 Bu Günü Regl Olarak İşaretle'}
           </button>
         </div>
       </div>
@@ -544,16 +474,12 @@ window.App.Calendar = {
 
     document.body.appendChild(modal);
 
-    const closeModal = () => {
-      modal.remove();
-    };
-
+    const closeModal = () => modal.remove();
     modal.querySelector('.btn-close-preview')?.addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => {
       if (e.target === modal) closeModal();
     });
 
-    // Günlüğü Düzenle Butonu
     modal.querySelector('.btn-edit-this-day')?.addEventListener('click', () => {
       closeModal();
       if (window.App.Main && window.App.Main.navigateTo) {
@@ -564,7 +490,6 @@ window.App.Calendar = {
       }
     });
 
-    // Regl İşaretini Aç/Kapat Butonu
     modal.querySelector('.btn-toggle-period-quick')?.addEventListener('click', () => {
       closeModal();
       this.togglePeriodDay(dateStr);
@@ -620,7 +545,7 @@ window.App.Calendar = {
     }
 
     compContainer.innerHTML = `
-      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 12px 14px; box-shadow: var(--shadow-sm);">
+      <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: var(--radius-xl); padding: 12px 14px; box-shadow: var(--shadow-sm);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <span style="font-size: 0.84rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
             📊 Aylar Arası Adet Süresi Kıyaslaması
@@ -635,7 +560,7 @@ window.App.Calendar = {
               <strong>${currentDuration} Gün</strong>
             </div>
             <div style="width: 100%; background: var(--bg-secondary); height: 8px; border-radius: var(--radius-full); overflow: hidden;">
-              <div style="width: ${Math.min(100, (currentDuration / 10) * 100)}%; background: linear-gradient(90deg, #E57373, #D4556B); height: 100%; border-radius: var(--radius-full);"></div>
+              <div style="width: ${Math.min(100, (currentDuration / 10) * 100)}%; background: linear-gradient(90deg, #D96B58, #E87A8D); height: 100%; border-radius: var(--radius-full);"></div>
             </div>
           </div>
 
@@ -652,7 +577,7 @@ window.App.Calendar = {
           ` : ''}
         </div>
 
-        <div style="font-size: 0.78rem; color: var(--text-primary); line-height: 1.4; background: var(--bg-secondary); padding: 8px 10px; border-radius: var(--radius-md); border-left: 3px solid #E57373;">
+        <div style="font-size: 0.78rem; color: var(--text-primary); line-height: 1.4; background: var(--bg-secondary); padding: 8px 10px; border-radius: var(--radius-md); border-left: 3px solid #D96B58;">
           💡 ${diffHtml}
         </div>
       </div>
@@ -677,7 +602,7 @@ window.App.Calendar = {
     let phaseBadgeColor = 'var(--accent-phase)';
     if (classification.isPeriod) {
       phaseName = '🩸 Regl Dönemi (İşaretli ✓)';
-      phaseBadgeColor = 'var(--accent-period)';
+      phaseBadgeColor = '#D96B58';
     } else if (classification.isOvulation) {
       phaseName = '🌟 Yumurtlama Günü (Ovulasyon)';
       phaseBadgeColor = 'var(--accent-ovulation)';
@@ -686,55 +611,22 @@ window.App.Calendar = {
       phaseBadgeColor = 'var(--accent-fertile)';
     } else if (classification.isPredictedPeriod) {
       phaseName = '📅 Tahmini Regl';
-      phaseBadgeColor = 'var(--accent-period)';
+      phaseBadgeColor = '#D96B58';
     }
 
-    // O güne ait semptom & sağlık kayıtları
     const symptoms = (window.App.Data && typeof window.App.Data.getSymptoms === 'function')
       ? window.App.Data.getSymptoms(dateStr)
       : null;
 
-    const moodNames = {
-      great: '😄 Harika & Enerjik',
-      good: '🥰 Mutlu & Romantik',
-      okay: '😐 Normal / Dengeli',
-      bad: '😔 Yorgun / Hassas',
-      terrible: '😢 Çok Duygusal'
-    };
-
-    const painNames = {
-      none: 'Ağrı Yok 😊',
-      mild: 'Hafif Ağrı 🌱',
-      moderate: 'Orta Şiddetli Sancı ⚡',
-      severe: 'Şiddetli Sancı 🔥'
-    };
-
     let logChips = [];
     if (symptoms) {
-      if (symptoms.mood && moodNames[symptoms.mood]) {
-        logChips.push(`<span class="cal-log-chip mood">${moodNames[symptoms.mood]}</span>`);
-      }
-      if (symptoms.painLevel && symptoms.painLevel !== 'none') {
-        logChips.push(`<span class="cal-log-chip pain">⚡ ${painNames[symptoms.painLevel] || symptoms.painLevel}</span>`);
-      }
-      if (symptoms.flow && symptoms.flow !== 'none') {
-        logChips.push(`<span class="cal-log-chip flow">💧 Akıntı / Kanama</span>`);
-      }
-      if (symptoms.intimacy) {
-        logChips.push(`<span class="cal-log-chip intimacy">❤️ Birliktelik</span>`);
-      }
-      if (symptoms.exercise) {
-        logChips.push(`<span class="cal-log-chip intimacy">🏃‍♀️ Egzersiz</span>`);
-      }
-      if (symptoms.water !== undefined && Number(symptoms.water) > 0) {
-        logChips.push(`<span class="cal-log-chip flow">🥛 ${symptoms.water} Bardak Su</span>`);
-      }
-      if (symptoms.temperature) {
-        logChips.push(`<span class="cal-log-chip temp">🌡️ Ateş: ${symptoms.temperature}°C</span>`);
-      }
-      if (symptoms.birthControlTaken) {
-        logChips.push(`<span class="cal-log-chip meds">💊 İlaç Alındı</span>`);
-      }
+      if (symptoms.mood) logChips.push(`<span class="cal-log-chip mood">${symptoms.mood}</span>`);
+      if (symptoms.painLevel && symptoms.painLevel !== 'none') logChips.push(`<span class="cal-log-chip pain">⚡ Ağrı</span>`);
+      if (symptoms.flow && symptoms.flow !== 'none') logChips.push(`<span class="cal-log-chip flow">💧 Akıntı</span>`);
+      if (symptoms.intimacy) logChips.push(`<span class="cal-log-chip intimacy">❤️ Birliktelik</span>`);
+      if (symptoms.exercise) logChips.push(`<span class="cal-log-chip intimacy">🏃‍♀️ Egzersiz</span>`);
+      if (symptoms.water) logChips.push(`<span class="cal-log-chip flow">🥛 Su</span>`);
+      if (symptoms.birthControlTaken) logChips.push(`<span class="cal-log-chip meds">💊 İlaç</span>`);
       if (symptoms.customSymptoms && Array.isArray(symptoms.customSymptoms)) {
         symptoms.customSymptoms.forEach(cs => {
           logChips.push(`<span class="cal-log-chip meds">✨ ${cs}</span>`);
@@ -744,7 +636,7 @@ window.App.Calendar = {
 
     panel.style.display = 'block';
     panel.innerHTML = `
-      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 14px; box-shadow: var(--shadow-sm);">
+      <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); border-radius: var(--radius-xl); padding: 14px; box-shadow: var(--shadow-sm);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
           <div>
             <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0;">${formattedDate}</h3>
@@ -757,8 +649,8 @@ window.App.Calendar = {
           </button>
         </div>
 
-        <!-- TİKLİ / SEÇMELİ ADET İŞARETLEME KUTUSU (TEK DOKUNUŞLA AÇ/KAPA) -->
-        <div id="btn-period-toggle-card" style="background: ${isPeriod ? '#E57373' : 'var(--bg-secondary)'}; border: 1.5px solid ${isPeriod ? '#E57373' : 'var(--border)'}; border-radius: var(--radius-lg); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s ease; margin-bottom: 12px; color: ${isPeriod ? '#ffffff' : 'var(--text-primary)'};">
+        <!-- TİKLİ ADET İŞARETLEME KUTUSU -->
+        <div id="btn-period-toggle-card" style="background: ${isPeriod ? '#D96B58' : 'var(--bg-secondary)'}; border: 1.5px solid ${isPeriod ? '#D96B58' : 'var(--border)'}; border-radius: var(--radius-lg); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s ease; margin-bottom: 12px; color: ${isPeriod ? '#ffffff' : 'var(--text-primary)'};">
           <div style="display: flex; align-items: center; gap: 10px;">
             <span style="font-size: 1.5rem;">🩸</span>
             <div>
@@ -771,8 +663,7 @@ window.App.Calendar = {
             </div>
           </div>
           
-          <!-- İnteraktif Tik Kutusu -->
-          <div style="width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: ${isPeriod ? '#ffffff' : 'var(--surface)'}; border: 2px solid ${isPeriod ? '#ffffff' : 'var(--border)'}; color: ${isPeriod ? '#E57373' : '#fff'}; font-size: 1.1rem; font-weight: 800; transition: all 0.2s ease;">
+          <div style="width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; background: ${isPeriod ? '#ffffff' : 'var(--surface)'}; border: 2px solid ${isPeriod ? '#ffffff' : 'var(--border)'}; color: ${isPeriod ? '#D96B58' : '#fff'}; font-size: 1.1rem; font-weight: 800;">
             ${isPeriod ? '✓' : ''}
           </div>
         </div>
@@ -780,34 +671,26 @@ window.App.Calendar = {
         <!-- O Günün Sağlık & Ruh Hali Emojileri -->
         <div style="padding-top: 8px; border-top: 1px dashed var(--border);">
           <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px;">
-            📝 Bu Günün Ruh Hali & Sağlık Kayıtları:
+            📝 Bu Günün Kayıtları:
           </div>
           
           ${logChips.length > 0 ? `
-            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;">
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
               ${logChips.join('')}
             </div>
           ` : `
-            <p style="font-size: 0.8rem; color: var(--text-secondary); font-style: italic; margin: 4px 0 8px;">
-              Bu gün için henüz ruh hali veya belirti girilmemiş. "Ruh Hali & Belirti Ekle" butonuyla takvime emoji ekleyebilirsiniz!
+            <p style="font-size: 0.8rem; color: var(--text-secondary); font-style: italic; margin: 4px 0;">
+              Bu gün için henüz ruh hali veya belirti girilmemiş.
             </p>
           `}
-
-          ${symptoms && symptoms.notes ? `
-            <div style="background: var(--bg-secondary); padding: 8px 10px; border-radius: var(--radius-md); font-size: 0.82rem; color: var(--text-primary); margin-top: 6px;">
-              <strong>Not:</strong> "${symptoms.notes}"
-            </div>
-          ` : ''}
         </div>
       </div>
     `;
 
-    // Tikli Kutucuk Dinleyicisi
     panel.querySelector('#btn-period-toggle-card')?.addEventListener('click', () => {
       this.togglePeriodDay(dateStr);
     });
 
-    // Günlük Düzenle Butonu
     panel.querySelector('.btn-goto-day-log')?.addEventListener('click', () => {
       if (window.App.Main && window.App.Main.navigateTo) {
         window.App.Main.navigateTo('symptoms');
@@ -870,30 +753,14 @@ window.App.Calendar = {
 
     this.container.querySelector('.prev-month')?.addEventListener('click', () => this.navigateMonth(-1));
     this.container.querySelector('.next-month')?.addEventListener('click', () => this.navigateMonth(1));
-    this.container.querySelector('.today-btn')?.addEventListener('click', () => this.goToToday());
 
     // Yıl / Ay Düğmeleri
     this.container.querySelector('#btn-view-year')?.addEventListener('click', () => {
       this.viewMode = 'year';
-      if (window.App.Utils && window.App.Utils.showToast) {
-        window.App.Utils.showToast('Yıllık takvim görünümü', 'info');
-      }
       this.refresh();
     });
     this.container.querySelector('#btn-view-month')?.addEventListener('click', () => {
       this.viewMode = 'month';
-      this.refresh();
-    });
-
-    // Dokun ve Tik Koy Modunu Aç / Kapat
-    this.container.querySelector('#btn-toggle-quick-check')?.addEventListener('click', () => {
-      this.directCheckMode = !this.directCheckMode;
-      if (window.App.Utils && window.App.Utils.showToast) {
-        window.App.Utils.showToast(
-          this.directCheckMode ? 'Dokunarak Regl İşaretleme Açıldı (✓)' : 'Sadece Seçim Modu Açıldı',
-          'info'
-        );
-      }
       this.refresh();
     });
 
@@ -913,7 +780,7 @@ window.App.Calendar = {
             window.App.Utils.vibrate(45);
           }
           this.showDayPreviewPopup(dateStr);
-        }, 450); // 450ms basılı tutulduğunda popup açılır
+        }, 450);
       };
 
       const cancelPress = () => {
@@ -923,7 +790,7 @@ window.App.Calendar = {
         }
       };
 
-      // Dokunmatik Ekran (Mobil) Dinleyicileri
+      // Dokunmatik Ekran (Mobil)
       day.addEventListener('touchstart', startPress, { passive: true });
       day.addEventListener('touchend', cancelPress);
       day.addEventListener('touchmove', cancelPress);
@@ -941,22 +808,13 @@ window.App.Calendar = {
       });
 
       // Normal Tıklama (Basılı tutulmadıysa çalışır)
-      day.addEventListener('click', (e) => {
+      day.addEventListener('click', () => {
         if (isLongPress) {
           isLongPress = false;
           return;
         }
-
-        const clickedCheckBadge = e.target.closest('.cal-day-check-badge');
-
-        if (clickedCheckBadge || this.directCheckMode) {
-          // Doğrudan Tik (✓) İşaretini Aç veya Kapat
-          this.selectedDate = dateStr;
-          this.togglePeriodDay(dateStr);
-        } else {
-          // Normal Seçim
-          this.selectDate(dateStr);
-        }
+        this.selectedDate = dateStr;
+        this.togglePeriodDay(dateStr);
       });
     });
   },

@@ -121,16 +121,7 @@ window.App.Calendar = {
       if (classification) {
         if (classification.isPeriod) {
           classes.push('period');
-          // Kaçıncı gün olduğunu hesapla
-          let dayNum = '';
-          if (window.App.Data && window.App.Data.getPeriodForDate) {
-            const p = window.App.Data.getPeriodForDate(dateStr);
-            if (p && p.days) {
-              const sorted = [...p.days].sort();
-              dayNum = sorted.indexOf(dateStr) + 1;
-            }
-          }
-          dotHtml += `<span class="cal-dot dot-period" title="Regl ${dayNum}. Gün">✓ ${dayNum ? dayNum + '.G' : ''}</span>`;
+          dotHtml += `<span class="cal-dot dot-period" title="Regl"></span>`;
         } else if (classification.isPredictedPeriod) {
           classes.push('predicted-period');
           dotHtml += `<span class="cal-dot dot-predicted" title="Tahmini"></span>`;
@@ -178,7 +169,7 @@ window.App.Calendar = {
         </div>
 
         <div class="calendar-legend">
-          <div class="legend-item"><span class="legend-dot dot-period">✓</span><span>${t('calendar.periodDays', 'Adet Günü (✓)')}</span></div>
+          <div class="legend-item"><span class="legend-dot dot-period"></span><span>${t('calendar.periodDays', 'Adet Günü')}</span></div>
           <div class="legend-item"><span class="legend-dot dot-predicted"></span><span>${t('calendar.predictedPeriod', 'Tahmini')}</span></div>
           <div class="legend-item"><span class="legend-dot dot-ovulation"></span><span>${t('calendar.ovulation', 'Yumurtlama')}</span></div>
           <div class="legend-item"><span class="legend-dot dot-fertile"></span><span>${t('calendar.fertileWindow', 'Doğurgan')}</span></div>

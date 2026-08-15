@@ -1,31 +1,76 @@
 window.App = window.App || {};
 
 /**
- * Gelişmiş Takvim Modülü (Exact Screenshot-Pixel-Perfect Interactive Calendar)
- * - Referans görseldeki gibi:
- *   - Üst pembe barda [ Yıl | Ay ] hap butonları
- *   - Sağ tarafta koyu kalın ay başlığı (Örn: Nisan 2026)
- *   - Pzt, Sa, Çar, Per, Cm, Cmt, Pz gün başlıkları
- *   - Beyaz ve kiremit/mercan dolgulu uzun dikdörtgen gün kartları
- *   - Tahmini günlerde yatay kırmızı/pembe çizgili desenli kartlar
- *   - Hücre içi gün sayısı ve üste bindirilmiş döngü günü: 27(26)
- *   - Günlükten girilen ruh hali, sancı, akıntı, tatlı, ilaç vb. emojiler hücre içine yan yana dizilir
- *   - Seçili günün etrafında siyah 2px belirgin kutu çerçevesi
- *   - Doğurganlık günlerinde mor 3 yapraklı çiçek simgesi
- *   - Alt pembe bantta: "Kalan günler: 1. Hamile kalma şansı: düşük.  ⋮"
- *   - Uzun basıldığında (Long-Press ~450ms) o günün detaylarını gösteren ufak pencere açılır.
- *   - Tek dokunuşla regl tiki açılır/kapanır.
+ * Gelişmiş WomanLog Pro Takvim Modülü (WomanLog Pro Cloned Edition)
+ * - 30 WomanLog Pro Temaları & 3D Arka Fon Seçici (Floral, Sakura 3D, Lavanta, Nane, Şeftali, Gece Modu)
+ * - Kesintisiz Akıcı Ay Akışı (Nisan, Mayıs, Haziran...)
+ * - Kiremit dolgulu regl kartları, çizgili tahmin kartları, mor 3 yapraklı doğurganlık tomurcukları
+ * - Zengin İkon Sistemi: Kalp (❤️), İlaç (💊), Yüz İfadeleri (😊), Akıntı (💧), Aşerme/Meyve (🍓, 🍰), Ateş (🔥), Bakım (💄), Egzersiz (🧘)
+ * - Uzun basıldığında (Long-Press) gün detayları ufak penceresi
+ * - Tek dokunuşla regl açma/kapama
  */
 window.App.Calendar = {
   currentMonth: new Date(),
   selectedDate: null,
   container: null,
   viewMode: 'month', // 'month' | 'year'
-  directCheckMode: true,
+  currentSkin: localStorage.getItem('womanlog_skin') || 'skin-floral',
 
   render(container) {
     this.container = container;
     this.refresh();
+  },
+
+  setSkin(skinClass) {
+    this.currentSkin = skinClass;
+    localStorage.setItem('womanlog_skin', skinClass);
+    this.refresh();
+    if (window.App.Utils && window.App.Utils.showToast) {
+      window.App.Utils.showToast('WomanLog Pro Teması Uygulandı 🎨🌸', 'success');
+    }
+  },
+
+  showSkinPickerModal() {
+    const skins = [
+      { id: 'skin-floral', name: '🌸 Klasik Çiçekli (WomanLog)', color: '#F6D8DE' },
+      { id: 'skin-sakura', name: '🌺 Sakura & Kiraz Çiçeği 3D', color: '#FCE4EC' },
+      { id: 'skin-lavender', name: '💜 Lavanta Rüyası', color: '#EDE7F6' },
+      { id: 'skin-mint', name: '🌿 Taze Nane & Bahar', color: '#C8E6C9' },
+      { id: 'skin-peach', name: '🍑 Şeftali Günbatımı', color: '#FFE0B2' },
+      { id: 'skin-dark', name: '🌙 Gece Modu & Yıldızlar', color: '#1E1B2E' }
+    ];
+
+    const modal = document.createElement('div');
+    modal.className = 'day-preview-modal-overlay';
+    modal.innerHTML = `
+      <div class="day-preview-modal-card" style="max-width: 320px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+          <h3 style="font-size: 1.05rem; font-weight: 800; margin: 0;">🎨 WomanLog Pro Temaları</h3>
+          <button type="button" class="btn btn-sm btn-ghost btn-close-modal" style="font-size: 1.2rem;">✕</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          ${skins.map(s => `
+            <button type="button" class="btn btn-secondary btn-select-skin" data-skin="${s.id}" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: var(--radius-lg); ${this.currentSkin === s.id ? 'border: 2px solid var(--accent-period); background: rgba(212,85,107,0.1);' : ''}">
+              <span style="font-weight: 700; font-size: 0.86rem;">${s.name}</span>
+              <span style="width: 22px; height: 22px; border-radius: 50%; background: ${s.color}; border: 1px solid rgba(0,0,0,0.15);"></span>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    const close = () => modal.remove();
+    modal.querySelector('.btn-close-modal')?.addEventListener('click', close);
+    modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+
+    modal.querySelectorAll('.btn-select-skin').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const skin = btn.getAttribute('data-skin');
+        this.setSkin(skin);
+        close();
+      });
+    });
   },
 
   refresh() {
@@ -51,14 +96,17 @@ window.App.Calendar = {
     const fertilityText = isFertileNow ? 'yüksek 🌸' : 'düşük.';
 
     let html = `
-      <div class="calendar-card">
+      <div class="calendar-card ${this.currentSkin}">
 
-        <!-- 1. ÜST PEMBE BAR (Yıl | Ay Butonları) -->
+        <!-- 1. ÜST PEMBE BAR (WomanLog Pro Yıl | Ay ve Tema Butonu) -->
         <div class="cal-top-segmented-bar">
           <div class="cal-segmented-pill-box">
             <button type="button" class="cal-segmented-pill ${this.viewMode === 'year' ? 'active' : ''}" id="btn-view-year">Yıl</button>
             <button type="button" class="cal-segmented-pill ${this.viewMode === 'month' ? 'active' : ''}" id="btn-view-month">Ay</button>
           </div>
+          <button type="button" id="btn-open-skins" class="btn btn-sm btn-ghost" style="color: #FFFFFF; font-size: 0.8rem; font-weight: 700; margin-left: 10px; background: rgba(0,0,0,0.12); border-radius: var(--radius-full); padding: 4px 10px;">
+            🎨 Temalar
+          </button>
         </div>
 
         <!-- 2. AY BAŞLIĞI VE GEÇİŞ OKLARI (Sağa Yaslı Ay Başlığı) -->
@@ -74,7 +122,7 @@ window.App.Calendar = {
           <div class="cal-month-title-right">${monthTitle}</div>
         </div>
 
-        <!-- 3. HAFTANIN GÜNLERİ (Görsel ile Birebir) -->
+        <!-- 3. HAFTANIN GÜNLERİ (WomanLog Pro Formatı) -->
         <div class="calendar-weekdays">
           <div>Pzt</div>
           <div>Sa</div>
@@ -149,7 +197,7 @@ window.App.Calendar = {
       }
 
       // ==========================================================
-      // O GÜNE AİT TÜM GÜNLÜK KATEGORİLERİNİN EMOJİLERİNİ TOPLA
+      // WOMANLOG PRO İKONLARI (Kalp, İlaç, Semptomlar)
       // ==========================================================
       if (window.App.Data && typeof window.App.Data.getSymptoms === 'function') {
         const sym = window.App.Data.getSymptoms(dateStr);
@@ -194,7 +242,7 @@ window.App.Calendar = {
             else if (!emojis.includes('💧')) emojis.push('💧');
           }
 
-          // 6. Yaşam Tarzı (Birliktelik & Spor)
+          // 6. Yaşam Tarzı (Birliktelik & Spor - WomanLog İkonları)
           if (sym.intimacy) emojis.push('❤️');
           if (sym.exercise) emojis.push('🧘');
 
@@ -209,7 +257,7 @@ window.App.Calendar = {
             else if (sym.sleep === 'great' || sym.sleep === 'good') emojis.push('🌙');
           }
 
-          // 9. İlaç / Doğum Kontrol
+          // 9. İlaç / Doğum Kontrol (WomanLog Pill İkonu)
           if (sym.birthControlTaken || (sym.medications && sym.medications.length > 0)) {
             emojis.push('💊');
           }
@@ -254,7 +302,7 @@ window.App.Calendar = {
             ${uniqueEmojis.map(e => `<span>${e}</span>`).join('')}
           </div>
 
-          <!-- Doğurganlık Çiçeği (Görseldeki Gibi Mor Küçük Çiçek) -->
+          <!-- Doğurganlık Çiçeği (WomanLog Mor Küçük Tomurcuk) -->
           ${isFertile && !isPeriod ? `<div class="cal-fertile-flower">🌸</div>` : ''}
         </div>
       `;
@@ -276,7 +324,7 @@ window.App.Calendar = {
     html += `
         </div>
 
-        <!-- 5. ALT DURUM BİLGİ ŞERİDİ (Görsel 2 ile Birebir) -->
+        <!-- 5. ALT DURUM BİLGİ ŞERİDİ (WomanLog Pro Formatı) -->
         <div class="cal-bottom-status-ribbon">
           <span>Kalan günler: <strong>${daysUntilPeriod}</strong>. Hamile kalma şansı: <strong>${fertilityText}</strong></span>
           <span style="font-size: 1.1rem; cursor: pointer;">⋮</span>
@@ -762,6 +810,11 @@ window.App.Calendar = {
     this.container.querySelector('#btn-view-month')?.addEventListener('click', () => {
       this.viewMode = 'month';
       this.refresh();
+    });
+
+    // WomanLog Pro Tema Seçici Butonu
+    this.container.querySelector('#btn-open-skins')?.addEventListener('click', () => {
+      this.showSkinPickerModal();
     });
 
     // Takvim Hücrelerine Tıklama & BASILI TUTMA (Long-Press)

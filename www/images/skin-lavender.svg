@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 800" width="100%" height="100%">
+  <!-- Lavender Purple Dream Theme -->
+  <defs>
+    <linearGradient id="lavenderBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#EDE7F6"/>
+      <stop offset="100%" stop-color="#D1C4E9"/>
+    </linearGradient>
+    <linearGradient id="lavenderPetal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#B39DDB" stop-opacity="0.6"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#lavenderBg)"/>
+
+  <g transform="translate(-10, 300)" opacity="0.65">
+    <ellipse cx="0" cy="0" rx="30" ry="130" fill="url(#lavenderPetal)" transform="rotate(15)"/>
+    <ellipse cx="0" cy="0" rx="30" ry="130" fill="url(#lavenderPetal)" transform="rotate(45)"/>
+    <ellipse cx="0" cy="0" rx="30" ry="130" fill="url(#lavenderPetal)" transform="rotate(75)"/>
+    <ellipse cx="0" cy="0" rx="30" ry="130" fill="url(#lavenderPetal)" transform="rotate(105)"/>
+    <ellipse cx="0" cy="0" rx="30" ry="130" fill="url(#lavenderPetal)" transform="rotate(135)"/>
+    <circle cx="0" cy="0" r="35" fill="#F3E5F5"/>
+  </g>
+</svg>

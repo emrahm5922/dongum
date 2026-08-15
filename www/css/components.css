@@ -565,6 +565,39 @@
   margin-bottom: var(--space-md);
   position: relative;
   overflow: hidden;
+  transition: background 0.3s ease;
+}
+
+/* WomanLog Pro Skins */
+.skin-floral {
+  background-color: #F6D8DE !important;
+  background-image: url('../images/calendar-flower-bg.svg') !important;
+}
+.skin-sakura {
+  background-color: #FCE4EC !important;
+  background-image: url('../images/skin-sakura.svg') !important;
+}
+.skin-lavender {
+  background-color: #EDE7F6 !important;
+  background-image: url('../images/skin-lavender.svg') !important;
+}
+.skin-mint {
+  background: linear-gradient(180deg, #E8F5E9 0%, #C8E6C9 100%) !important;
+}
+.skin-peach {
+  background: linear-gradient(180deg, #FFF3E0 0%, #FFE0B2 100%) !important;
+}
+.skin-dark {
+  background: linear-gradient(180deg, #1E1B2E 0%, #110E1C 100%) !important;
+}
+.skin-dark .cal-day {
+  background: rgba(35, 30, 50, 0.95) !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+.skin-dark .cal-month-title-right,
+.skin-dark .calendar-weekdays {
+  color: #FFFFFF !important;
 }
 
 /* Top Segmented Tab matching Screenshot (Yıl | Ay) */

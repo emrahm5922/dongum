@@ -278,6 +278,9 @@
       <!-- DASHBOARD SCREEN -->
       <!-- ==================== -->
       <section class="screen screen-dashboard" id="screen-dashboard">
+        <!-- Date Ribbon matching Image 1 -->
+        <div class="dashboard-date-ribbon" id="dashboard-date-ribbon"></div>
+
         <!-- Active Mode Banner -->
         <div class="dashboard-mode-banner" id="dashboard-mode-banner"></div>
 
@@ -286,7 +289,7 @@
           <svg class="cycle-ring-svg" viewBox="0 0 240 240" id="cycle-ring-svg">
             <!-- Background Ring -->
             <circle cx="120" cy="120" r="100" fill="none" stroke="var(--border)" stroke-width="12" opacity="0.3"/>
-            <!-- Phase Segments (rendered by JS) -->
+            <!-- Phase Segments / Pearl Beads (rendered by JS) -->
             <g id="cycle-ring-phases"></g>
             <!-- Progress Arc -->
             <circle cx="120" cy="120" r="100" fill="none" 
@@ -299,9 +302,12 @@
             <circle cx="120" cy="20" r="8" fill="var(--accent-period)" id="cycle-ring-dot" class="pulse"/>
           </svg>
           <div class="cycle-ring-center" id="cycle-ring-center">
+            <span class="cycle-day-label" id="cycle-day-label">Döngü Günü</span>
             <span class="cycle-day-number mono" id="cycle-day-number">--</span>
-            <span class="cycle-day-label" id="cycle-day-label"></span>
-            <span class="cycle-phase-name" id="cycle-phase-name"></span>
+            <button type="button" class="center-period-start-btn" id="btn-center-period-toggle">
+              🩸 Periyot Başlangıcı
+            </button>
+            <span class="cycle-phase-name" id="cycle-phase-name" style="margin-top: 4px; font-size: 0.72rem;"></span>
           </div>
         </div>
 

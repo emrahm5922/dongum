@@ -641,50 +641,149 @@
   color: var(--text-secondary);
 }
 
-/* Calendar Day Checkmark Indicators */
-.cal-day {
-  position: relative;
+/* Dashboard Date Ribbon matching Image 1 */
+.dashboard-date-ribbon {
+  background: linear-gradient(135deg, #E87285, #D4556B);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-align: center;
+  padding: 10px 14px;
   border-radius: var(--radius-lg);
+  margin-bottom: 14px;
+  box-shadow: 0 4px 12px rgba(212, 85, 107, 0.25);
+  letter-spacing: 0.3px;
+}
+
+/* Center Period Start/End Button inside Ring */
+.center-period-start-btn {
+  margin-top: 8px;
+  background: #ffffff;
+  color: #D4556B;
+  border: 1.5px solid #D4556B;
+  border-radius: var(--radius-full);
+  padding: 6px 16px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(212, 85, 107, 0.2);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.center-period-start-btn:hover {
+  background: rgba(212, 85, 107, 0.08);
+}
+.center-period-start-btn.active {
+  background: #D4556B;
+  color: #ffffff;
+}
+
+/* Calendar Day Cards matching Image 2 */
+.cal-day {
+  aspect-ratio: 0.85;
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 8px;
+  padding: 4px 2px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 42px;
+  justify-content: flex-start;
+  min-height: 48px;
   cursor: pointer;
   transition: all 0.15s ease;
   user-select: none;
+  position: relative;
 }
 .cal-day:active {
-  transform: scale(0.92);
+  transform: scale(0.94);
 }
+.cal-day.selected {
+  border: 2.5px solid #2C2C2C !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+  z-index: 2;
+}
+
+/* Active Period Days: Solid Coral-Pink */
 .cal-day.period {
-  background: linear-gradient(135deg, #D4556B, #E87285) !important;
+  background: #E57373 !important;
+  border-color: #E57373 !important;
   color: #ffffff !important;
   font-weight: 700 !important;
-  box-shadow: 0 2px 6px rgba(212, 85, 107, 0.35);
+  box-shadow: 0 2px 6px rgba(229, 115, 115, 0.35);
 }
-.cal-day.period::after {
-  content: "✓";
-  position: absolute;
-  top: 1px;
-  right: 3px;
-  font-size: 0.7rem;
-  font-weight: 900;
-  color: #ffffff;
+.cal-day.period .cal-day-sup {
+  color: rgba(255, 255, 255, 0.85);
 }
+
+/* Predicted Period Days: Pink Striped */
 .cal-day.predicted-period {
-  background: rgba(212, 85, 107, 0.15) !important;
-  border: 1.5px dashed var(--accent-period);
-  color: var(--accent-period) !important;
-}
-.cal-day.ovulation {
-  background: rgba(140, 90, 200, 0.2) !important;
-  color: #6a3ca0 !important;
+  background: repeating-linear-gradient(
+    0deg,
+    #ffffff,
+    #ffffff 3px,
+    #fcd8df 3px,
+    #fcd8df 6px
+  ) !important;
+  border: 1.5px solid #f497a9 !important;
+  color: #D4556B !important;
   font-weight: 700;
 }
-.cal-day.fertile {
-  background: rgba(91, 154, 111, 0.15) !important;
-  color: var(--accent-fertile) !important;
+
+/* Day Number & Superscript Cycle Day */
+.cal-day-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  line-height: 1;
+}
+.cal-day-main {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.cal-day-sup {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-left: 1px;
+}
+
+/* Emoji Stack inside Calendar Cells */
+.cal-emoji-stack {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 1px;
+  margin-top: 3px;
+  font-size: 0.72rem;
+  line-height: 1;
+  max-width: 100%;
+}
+
+/* Fertile & Ovulation Petals */
+.cal-fertile-flower {
+  color: #8E44AD;
+  font-size: 0.7rem;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+/* Bottom Status Ribbon */
+.cal-bottom-status-ribbon {
+  background: linear-gradient(135deg, #E87285, #D4556B);
+  color: #ffffff;
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: var(--radius-lg);
+  margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(212, 85, 107, 0.25);
 }
 
 .legend-item {

@@ -536,6 +536,33 @@ window.App.Main = (() => {
       });
     }
 
+    // 0. Tarih Bandı (Date Ribbon matching Image 1)
+    const dateRibbon = document.getElementById('dashboard-date-ribbon');
+    if (dateRibbon) {
+      const now = new Date();
+      const trDays = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+      const trMonths = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+      dateRibbon.textContent = `${trDays[now.getDay()]} ${now.getDate()} ${trMonths[now.getMonth()]} ${now.getFullYear()}`;
+    }
+
+    // 0.1 Merkezdeki Periyot Başlat/Bitir Butonu
+    const centerBtn = document.getElementById('btn-center-period-toggle');
+    const todayStr = App.Utils.toISODateString(new Date());
+    const isTodayPeriod = App.Cycle.classifyDate(todayStr).isPeriod;
+
+    if (centerBtn) {
+      centerBtn.innerHTML = isTodayPeriod ? '✓ Periyot Bitti' : '🩸 Periyot Başlangıcı';
+      centerBtn.classList.toggle('active', isTodayPeriod);
+      centerBtn.onclick = () => {
+        if (App.Calendar && App.Calendar.togglePeriodDay) {
+          App.Calendar.togglePeriodDay(todayStr);
+        } else {
+          App.Data.togglePeriodDay(todayStr);
+          renderDashboard();
+        }
+      };
+    }
+
     if (!cycleInfo || !cycleInfo.cycleDay) {
       setText('cycle-day-number', '--');
       setText('cycle-day-label', t('dashboard.noCycleData'));
@@ -547,6 +574,39 @@ window.App.Main = (() => {
     const dayNumber = cycleInfo.cycleDay;
     const totalDays = cycleInfo.totalDays || 28;
     const progress = Math.min(dayNumber / totalDays, 1);
+
+    // 0.2 Boncuklu Halka / Pearl Beads (Matching Image 1)
+    const phasesGroup = document.getElementById('cycle-ring-phases');
+    if (phasesGroup && cycleInfo) {
+      let beadsHtml = '';
+      const totalBeads = totalDays || 28;
+      const radius = 100;
+      const center = 120;
+
+      for (let b = 1; b <= totalBeads; b++) {
+        const beadAngle = ((b - 1) / totalBeads) * 360 - 90;
+        const beadRad = (beadAngle * Math.PI) / 180;
+        const bx = center + radius * Math.cos(beadRad);
+        const by = center + radius * Math.sin(beadRad);
+
+        const isPeriodBead = b <= (cycleInfo.periodLength || 5);
+        const isOvulationBead = b === (cycleInfo.ovulationDay || 14);
+        const isFertileBead = (b >= (cycleInfo.ovulationDay - 4) && b <= (cycleInfo.ovulationDay + 1));
+        const isCurrentDayBead = b === dayNumber;
+
+        if (isPeriodBead) {
+          // Coral solid pearl
+          beadsHtml += `<circle cx="${bx}" cy="${by}" r="${isCurrentDayBead ? 9 : 7}" fill="#E57373" stroke="#ffffff" stroke-width="1.5" />`;
+        } else if (isOvulationBead || isFertileBead) {
+          // Purple petal/flower symbol
+          beadsHtml += `<text x="${bx}" y="${by + 4}" font-size="${isCurrentDayBead ? 14 : 11}" text-anchor="middle" fill="#8E44AD">🌸</text>`;
+        } else {
+          // Soft grey pearl
+          beadsHtml += `<circle cx="${bx}" cy="${by}" r="${isCurrentDayBead ? 8 : 6}" fill="#D5D8DC" stroke="#ffffff" stroke-width="1.2" />`;
+        }
+      }
+      phasesGroup.innerHTML = beadsHtml;
+    }
 
     if (userGoal === 'ttc') {
       // Bebek Planlama Modunda Çember
@@ -572,7 +632,7 @@ window.App.Main = (() => {
     } else {
       // Standart Sancı ve Sağlık Modunda Çember
       setText('cycle-day-number', dayNumber.toString());
-      setText('cycle-day-label', t('dashboard.dayOfCycle', { day: dayNumber, total: totalDays }));
+      setText('cycle-day-label', 'Döngü Günü');
     }
     
     // Faz adı
@@ -595,12 +655,12 @@ window.App.Main = (() => {
       progressCircle.style.strokeDashoffset = offset;
 
       const phaseColors = {
-        menstrual: 'var(--accent-period)',
+        menstrual: '#E57373',
         follicular: 'var(--accent-phase)',
         ovulation: 'var(--accent-ovulation)',
         luteal: 'var(--accent-phase)'
       };
-      const phaseColor = cycleInfo.phase ? (phaseColors[cycleInfo.phase.phase] || 'var(--accent-period)') : 'var(--accent-period)';
+      const phaseColor = cycleInfo.phase ? (phaseColors[cycleInfo.phase.phase] || '#E57373') : '#E57373';
       progressCircle.setAttribute('stroke', phaseColor);
     }
 

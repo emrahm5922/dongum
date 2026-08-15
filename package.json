@@ -1,0 +1,33 @@
+{
+  "name": "dongum-regl-takip",
+  "version": "1.0.0",
+  "description": "Döngüm - Gelişmiş Kişisel Regl ve Döngü Takip Uygulaması",
+  "main": "index.html",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "start": "npx -y http-server www -p 8080 -o",
+    "cap:init": "npm run build && npx cap sync",
+    "cap:android": "npm run build && npx cap add android",
+    "cap:ios": "npm run build && npx cap add ios",
+    "cap:sync": "npm run build && npx cap sync",
+    "cap:open:android": "npx cap open android",
+    "cap:open:ios": "npx cap open ios"
+  },
+  "keywords": [
+    "period-tracker",
+    "menstrual-cycle",
+    "pwa",
+    "health"
+  ],
+  "author": "Döngüm",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "latest",
+    "@capacitor/core": "latest",
+    "@capacitor/ios": "latest",
+    "@capacitor/local-notifications": "^8.3.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "latest"
+  }
+}

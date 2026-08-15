@@ -1,0 +1,21 @@
+{
+  "name": "Döngüm - Regl Takip",
+  "short_name": "Döngüm",
+  "description": "Kişisel adet döngüsü takip ve sağlık uygulaması",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FAFAF8",
+  "theme_color": "#D4556B",
+  "orientation": "portrait",
+  "lang": "tr",
+  "dir": "ltr",
+  "categories": ["health", "medical", "lifestyle"],
+  "icons": [
+    {
+      "src": "icon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

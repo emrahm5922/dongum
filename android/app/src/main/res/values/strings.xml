@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Döngüm</string>
+    <string name="title_activity_main">Döngüm</string>
+    <string name="package_name">com.dongum.app</string>
+    <string name="custom_url_scheme">com.dongum.app</string>
+</resources>

@@ -1,0 +1,220 @@
+/* css/themes.css */
+/* 
+ * Multi-Theme Definitions for Döngüm
+ * Beautiful, gentle palettes for female wellbeing
+ */
+
+/* 
+ * 1. Default / Classic Clean
+ */
+:root, [data-theme='classic'], [data-theme='light'] {
+  --bg-primary: #FAFAF8;
+  --bg-secondary: #F0EDE8;
+  --bg-tertiary: #E8E3DC;
+  
+  --text-primary: #2C2C34;
+  --text-secondary: #6B6B78;
+  
+  --accent-period: #D4556B;
+  --accent-fertile: #5B9A6F;
+  --accent-ovulation: #D4A03C;
+  --accent-phase: #7B8FB2;
+  
+  --surface: #FFFFFF;
+  --surface-elevated: #FFFFFF;
+  --border: #E0DCD6;
+  
+  --success: #5B9A6F;
+  --warning: #D4A03C;
+  --danger: #D4556B;
+  --shadow-color: rgba(44, 44, 52, 0.08);
+}
+
+/* 
+ * 2. Rose / Pudra Pembesi & Gül Kurusu (En Popüler)
+ */
+[data-theme='rose'] {
+  --bg-primary: #FFF4F6;
+  --bg-secondary: #FFE7EB;
+  --bg-tertiary: #FFD8E0;
+  
+  --text-primary: #38242A;
+  --text-secondary: #7A5762;
+  
+  --accent-period: #E84D72;
+  --accent-fertile: #529E75;
+  --accent-ovulation: #E09838;
+  --accent-phase: #8E78A5;
+  
+  --surface: #FFFFFF;
+  --surface-elevated: #FFFFFF;
+  --border: #F8D3DC;
+  
+  --success: #529E75;
+  --warning: #E09838;
+  --danger: #E84D72;
+  --shadow-color: rgba(232, 77, 114, 0.12);
+}
+
+/* 
+ * 3. Lavender / Lavanta & Lila
+ */
+[data-theme='lavender'] {
+  --bg-primary: #F8F5FF;
+  --bg-secondary: #EFE7FF;
+  --bg-tertiary: #E3D6FF;
+  
+  --text-primary: #2B243B;
+  --text-secondary: #6B5B82;
+  
+  --accent-period: #9A62C6;
+  --accent-fertile: #4FA07B;
+  --accent-ovulation: #DFA036;
+  --accent-phase: #816DBA;
+  
+  --surface: #FFFFFF;
+  --surface-elevated: #FFFFFF;
+  --border: #DDD0F7;
+  
+  --success: #4FA07B;
+  --warning: #DFA036;
+  --danger: #9A62C6;
+  --shadow-color: rgba(154, 98, 198, 0.12);
+}
+
+/* 
+ * 4. Peach / Sıcak Şeftali & Günbatımı
+ */
+[data-theme='peach'] {
+  --bg-primary: #FFF6F0;
+  --bg-secondary: #FFE8DC;
+  --bg-tertiary: #FFDBC8;
+  
+  --text-primary: #3D261C;
+  --text-secondary: #7E5B4B;
+  
+  --accent-period: #EA6036;
+  --accent-fertile: #529969;
+  --accent-ovulation: #E29432;
+  --accent-phase: #D47B5A;
+  
+  --surface: #FFFFFF;
+  --surface-elevated: #FFFFFF;
+  --border: #F9D6C4;
+  
+  --success: #529969;
+  --warning: #E29432;
+  --danger: #EA6036;
+  --shadow-color: rgba(234, 96, 54, 0.12);
+}
+
+/* 
+ * 5. Sage / Adaçayı & Huzur Yeşili
+ */
+[data-theme='sage'] {
+  --bg-primary: #F3F8F4;
+  --bg-secondary: #E4EFE6;
+  --bg-tertiary: #D2E4D6;
+  
+  --text-primary: #213125;
+  --text-secondary: #536D5A;
+  
+  --accent-period: #D4556B;
+  --accent-fertile: #448A5E;
+  --accent-ovulation: #CFA034;
+  --accent-phase: #5E9473;
+  
+  --surface: #FFFFFF;
+  --surface-elevated: #FFFFFF;
+  --border: #CADCCF;
+  
+  --success: #448A5E;
+  --warning: #CFA034;
+  --danger: #D4556B;
+  --shadow-color: rgba(68, 138, 94, 0.12);
+}
+
+/* 
+ * 6. Dark / Gece & Koyu Mod
+ */
+[data-theme='dark'] {
+  --bg-primary: #141424;
+  --bg-secondary: #1E1E34;
+  --bg-tertiary: #282846;
+  
+  --text-primary: #F0F0F8;
+  --text-secondary: #A0A0BA;
+  
+  --accent-period: #E8637A;
+  --accent-fertile: #6BAF80;
+  --accent-ovulation: #E8B44E;
+  --accent-phase: #8FA3C6;
+  
+  --surface: #1E1E34;
+  --surface-elevated: #282848;
+  --border: #363658;
+  
+  --success: #6BAF80;
+  --warning: #E8B44E;
+  --danger: #E8637A;
+  --shadow-color: rgba(0, 0, 0, 0.35);
+}
+
+/* Theme Transitions */
+body {
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+*, *::before, *::after {
+  transition: background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+/* Theme Swatch Selector Grid */
+.theme-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.theme-swatch-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 6px;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.theme-swatch-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.theme-swatch-btn.active {
+  border-color: var(--accent-period);
+  box-shadow: 0 0 0 3px rgba(212, 85, 107, 0.25);
+}
+
+.theme-color-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.6), 0 2px 6px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.theme-swatch-name {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+}

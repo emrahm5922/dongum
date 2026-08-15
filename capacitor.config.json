@@ -1,0 +1,15 @@
+{
+  "appId": "com.dongum.app",
+  "appName": "Döngüm",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon",
+      "iconColor": "#D4556B"
+    }
+  }
+}

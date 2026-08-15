@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#D4556B">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Döngüm">
+  <meta name="description" content="Kişisel adet döngüsü takip ve sağlık uygulaması. Regl takibi, yumurtlama tahmini, semptom günlüğü ve akıllı bildirimler.">
+  <meta name="keywords" content="regl takip, adet döngüsü, yumurtlama, doğurganlık, kadın sağlığı, period tracker">
+  
+  <title>Döngüm — Regl Takip</title>
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.jpg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="icon.jpg">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/components.css">
+
+  <!-- Print Stylesheet for PDF Export -->
+  <style id="print-styles">
+    @media print {
+      .bottom-nav, .toast-container, .modal-backdrop, .fab,
+      #pin-screen, .header-actions { display: none !important; }
+      .app-container { padding-bottom: 0 !important; }
+      .screen { display: block !important; page-break-inside: avoid; }
+      body { background: white !important; color: black !important; }
+      .print-report { display: block !important; }
+      .print-report table { width: 100%; border-collapse: collapse; }
+      .print-report th, .print-report td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+      .print-report h1 { font-size: 20pt; margin-bottom: 10pt; }
+      .print-report h2 { font-size: 14pt; margin: 16pt 0 8pt; border-bottom: 1px solid #999; }
+      .print-report .disclaimer { font-size: 9pt; color: #666; margin-top: 20pt; padding-top: 10pt; border-top: 1px solid #ccc; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================ -->
+  <!-- PIN LOCK SCREEN -->
+  <!-- ============================================ -->
+  <div id="pin-screen" class="pin-screen" style="display: none;">
+    <div class="pin-content">
+      <div class="pin-logo">
+        <img src="icon.jpg" alt="Döngüm" class="pin-logo-img" width="80" height="80">
+      </div>
+      <h2 class="pin-title" id="pin-title"></h2>
+      <p class="pin-subtitle" id="pin-subtitle"></p>
+      <div class="pin-dots" id="pin-dots">
+        <span class="pin-dot" data-index="0"></span>
+        <span class="pin-dot" data-index="1"></span>
+        <span class="pin-dot" data-index="2"></span>
+        <span class="pin-dot" data-index="3"></span>
+      </div>
+      <p class="pin-error" id="pin-error" style="display: none;"></p>
+      <div class="pin-pad" id="pin-pad">
+        <button type="button" class="pin-key" data-key="1">1</button>
+        <button type="button" class="pin-key" data-key="2">2</button>
+        <button type="button" class="pin-key" data-key="3">3</button>
+        <button type="button" class="pin-key" data-key="4">4</button>
+        <button type="button" class="pin-key" data-key="5">5</button>
+        <button type="button" class="pin-key" data-key="6">6</button>
+        <button type="button" class="pin-key" data-key="7">7</button>
+        <button type="button" class="pin-key" data-key="8">8</button>
+        <button type="button" class="pin-key" data-key="9">9</button>
+        <button type="button" class="pin-key pin-key-action" data-key="clear" id="pin-clear-btn" aria-label="Temizle">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="pointer-events: none;"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+        </button>
+        <button type="button" class="pin-key" data-key="0">0</button>
+        <button type="button" class="pin-key pin-key-action" data-key="backspace" id="pin-back-btn" aria-label="Sil">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="pointer-events: none;"><path d="M21 4H8l-7 8 7 8h13a2 2 0 002-2V6a2 2 0 00-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+        </button>
+      </div>
+      <button type="button" class="pin-cancel-btn" id="pin-cancel" style="display: none;"></button>
+      <button type="button" class="pin-forgot-btn" id="pin-forgot" style="display: none; margin-top: 16px; background: none; border: none; font-size: 0.8rem; color: var(--text-secondary); text-decoration: underline; cursor: pointer;">PIN'imi Unuttum</button>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- ============================================ -->
+  <!-- ONBOARDING WIZARD -->
+  <!-- ============================================ -->
+  <div id="onboarding-screen" class="onboarding-screen" style="display: none;">
+    <div class="onboarding-container">
+      <!-- Step Indicators -->
+      <div class="onboarding-steps" id="onboarding-steps">
+        <span class="step-dot active" data-step="0"></span>
+        <span class="step-dot" data-step="1"></span>
+        <span class="step-dot" data-step="2"></span>
+        <span class="step-dot" data-step="3"></span>
+        <span class="step-dot" data-step="4"></span>
+      </div>
+
+      <!-- Step 0: Welcome -->
+      <div class="onboarding-step active" data-step="0" id="onboard-step-0">
+        <div class="onboarding-icon">
+          <img src="icon.jpg" alt="Döngüm" width="120" height="120" style="border-radius: var(--radius-xl);">
+        </div>
+        <h1 class="onboarding-title" id="onboard-welcome-title"></h1>
+        <p class="onboarding-subtitle" id="onboard-welcome-subtitle"></p>
+        <button class="btn btn-primary btn-lg" id="onboard-start-btn"></button>
+      </div>
+
+      <!-- Step 1: Profile & Personalization (Age, Goal, Marital, Birth) -->
+      <div class="onboarding-step" data-step="1" id="onboard-step-1">
+        <div class="onboarding-step-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-period)" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <h2 class="onboarding-step-title" id="onboard-profile-title">Sana Özel Döngü Deneyimi</h2>
+        <p class="onboarding-step-desc" id="onboard-profile-desc">Daha isabetli ağrı, hormon ve döngü tavsiyeleri için birkaç temel bilgi:</p>
+
+        <div class="form-group" style="width: 100%; text-align: left; margin-bottom: 12px;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; display: block;">Yaşınız</label>
+          <input type="number" class="form-input" id="onboard-user-age" min="12" max="65" value="25" style="width: 100%; padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); color: var(--text-primary);">
+        </div>
+
+        <div class="form-group" style="width: 100%; text-align: left; margin-bottom: 12px;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; display: block;">Kullanım Amacınız</label>
+          <select id="onboard-user-goal" class="form-input" style="width: 100%; padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); color: var(--text-primary);">
+            <option value="track">🌸 Regl, Sancı & Genel Sağlık Takibi</option>
+            <option value="ttc">👶 Hamilelik / Bebek Planlama</option>
+            <option value="prevent">🛡️ Doğurganlık & Korunma Takibi</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="width: 100%; text-align: left; margin-bottom: 12px;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; display: block;">Medeni Durum / İlişki</label>
+          <select id="onboard-user-marital" class="form-input" style="width: 100%; padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); color: var(--text-primary);">
+            <option value="single">Bekar</option>
+            <option value="married">Evli / Birlikteliğim Var</option>
+            <option value="unspecified">Belirtmek İstemiyorum</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="width: 100%; text-align: left; margin-bottom: 12px;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; display: block;">Doğum Geçmişi</label>
+          <select id="onboard-user-birth" class="form-input" style="width: 100%; padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); color: var(--text-primary);">
+            <option value="no">Doğum Yapmadım</option>
+            <option value="yes">Daha Önce Doğum Yaptım</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="onboard-birth-year-group" style="width: 100%; text-align: left; margin-bottom: 16px; display: none;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; display: block;">Son Doğumunuz Ne Zaman Yapıldı?</label>
+          <select id="onboard-user-birth-years" class="form-input" style="width: 100%; padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); color: var(--text-primary);">
+            <option value="under_1">🍼 1 Yıldan Az Önce (0 - 12 Ay)</option>
+            <option value="1_2_years" selected>🌿 1 - 2 Yıl Önce (İdeal Aralık)</option>
+            <option value="3_5_years">🌸 3 - 5 Yıl Önce</option>
+            <option value="5_plus">✨ 5 Yıldan Fazla</option>
+          </select>
+        </div>
+
+        <div class="onboarding-nav">
+          <button class="btn btn-ghost" id="onboard-back-profile">Geri</button>
+          <button class="btn btn-primary" id="onboard-next-profile">İleri</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Last Period Date -->
+      <div class="onboarding-step" data-step="2" id="onboard-step-2">
+        <div class="onboarding-step-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-period)" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="16" r="2" fill="var(--accent-period)"/></svg>
+        </div>
+        <h2 class="onboarding-step-title" id="onboard-period-title"></h2>
+        <p class="onboarding-step-desc" id="onboard-period-desc"></p>
+        <input type="date" class="form-input" id="onboard-last-period" />
+        <div class="onboarding-nav">
+          <button class="btn btn-ghost" id="onboard-back-period">Geri</button>
+          <button class="btn btn-primary" id="onboard-next-period">İleri</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Cycle & Period Length -->
+      <div class="onboarding-step" data-step="3" id="onboard-step-3">
+        <div class="onboarding-step-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-phase)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h2 class="onboarding-step-title" id="onboard-cycle-title"></h2>
+        
+        <div class="range-group">
+          <label class="range-label" id="onboard-cycle-label"></label>
+          <div class="range-value-display">
+            <span class="range-value mono" id="onboard-cycle-value">28</span>
+            <span class="range-unit" id="onboard-cycle-unit"></span>
+          </div>
+          <input type="range" class="form-range" id="onboard-cycle-length" min="18" max="45" value="28" />
+          <div class="range-hints">
+            <span>18</span>
+            <span id="onboard-cycle-avg"></span>
+            <span>45</span>
+          </div>
+        </div>
+
+        <div class="range-group">
+          <label class="range-label" id="onboard-period-label"></label>
+          <div class="range-value-display">
+            <span class="range-value mono" id="onboard-period-value">5</span>
+            <span class="range-unit" id="onboard-period-unit"></span>
+          </div>
+          <input type="range" class="form-range" id="onboard-period-length" min="2" max="10" value="5" />
+          <div class="range-hints">
+            <span>2</span>
+            <span id="onboard-period-avg"></span>
+            <span>10</span>
+          </div>
+        </div>
+
+        <div class="onboarding-nav">
+          <button class="btn btn-ghost" id="onboard-back-cycle">Geri</button>
+          <button class="btn btn-primary" id="onboard-next-cycle">İleri</button>
+        </div>
+      </div>
+
+      <!-- Step 4: PIN Setup (Optional) -->
+      <div class="onboarding-step" data-step="4" id="onboard-step-4">
+        <div class="onboarding-step-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-fertile)" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1" fill="var(--accent-fertile)"/></svg>
+        </div>
+        <h2 class="onboarding-step-title" id="onboard-pin-title"></h2>
+        <p class="onboarding-step-desc" id="onboard-pin-desc"></p>
+        <div class="onboarding-pin-options">
+          <button class="btn btn-primary btn-lg" id="onboard-set-pin"></button>
+          <button class="btn btn-ghost" id="onboard-skip-pin"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- MAIN APPLICATION -->
+  <!-- ============================================ -->
+  <div id="app" class="app-container" style="display: none;">
+
+    <!-- App Header -->
+    <header class="app-header" id="app-header">
+      <div class="header-left">
+        <button class="btn btn-icon header-back-btn" id="header-back" style="display: none;" aria-label="Geri">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <h1 class="header-title" id="header-title">Döngüm</h1>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-icon" id="header-notification" aria-label="Bildirimler">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          <span class="notification-badge" id="notification-badge" style="display: none;"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Screen Container -->
+    <main class="screen-container" id="screen-container">
+
+      <!-- ==================== -->
+      <!-- DASHBOARD SCREEN -->
+      <!-- ==================== -->
+      <section class="screen screen-dashboard" id="screen-dashboard">
+        <!-- Active Mode Banner -->
+        <div class="dashboard-mode-banner" id="dashboard-mode-banner"></div>
+
+        <!-- Cycle Ring -->
+        <div class="cycle-ring-wrapper" id="cycle-ring-wrapper">
+          <svg class="cycle-ring-svg" viewBox="0 0 240 240" id="cycle-ring-svg">
+            <!-- Background Ring -->
+            <circle cx="120" cy="120" r="100" fill="none" stroke="var(--border)" stroke-width="12" opacity="0.3"/>
+            <!-- Phase Segments (rendered by JS) -->
+            <g id="cycle-ring-phases"></g>
+            <!-- Progress Arc -->
+            <circle cx="120" cy="120" r="100" fill="none" 
+                    stroke="var(--accent-period)" stroke-width="12" 
+                    stroke-linecap="round"
+                    stroke-dasharray="628" stroke-dashoffset="628"
+                    transform="rotate(-90 120 120)"
+                    id="cycle-ring-progress"/>
+            <!-- Current Position Dot -->
+            <circle cx="120" cy="20" r="8" fill="var(--accent-period)" id="cycle-ring-dot" class="pulse"/>
+          </svg>
+          <div class="cycle-ring-center" id="cycle-ring-center">
+            <span class="cycle-day-number mono" id="cycle-day-number">--</span>
+            <span class="cycle-day-label" id="cycle-day-label"></span>
+            <span class="cycle-phase-name" id="cycle-phase-name"></span>
+          </div>
+        </div>
+
+        <!-- Mode Specific Action Card -->
+        <div class="mode-specific-card" id="mode-specific-card"></div>
+
+        <!-- Quick Info Cards -->
+        <div class="quick-info-grid" id="quick-info-grid">
+          <div class="info-card" id="info-card-next-period">
+            <div class="info-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-period)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <span class="info-card-value mono" id="info-next-period-value">--</span>
+            <span class="info-card-label" id="info-next-period-label"></span>
+          </div>
+          <div class="info-card" id="info-card-fertility">
+            <div class="info-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-fertile)" stroke-width="2"><path d="M12 22c4-4 8-7.5 8-12a8 8 0 10-16 0c0 4.5 4 8 8 12z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <span class="info-card-value" id="info-fertility-value">--</span>
+            <span class="info-card-label" id="info-fertility-label"></span>
+          </div>
+          <div class="info-card" id="info-card-ovulation">
+            <div class="info-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-ovulation)" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" fill="var(--accent-ovulation)" opacity="0.3"/></svg>
+            </div>
+            <span class="info-card-value mono" id="info-ovulation-value">--</span>
+            <span class="info-card-label" id="info-ovulation-label"></span>
+          </div>
+          <div class="info-card" id="info-card-pregnancy">
+            <div class="info-card-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-phase)" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            </div>
+            <span class="info-card-value mono" id="info-pregnancy-value">--%</span>
+            <span class="info-card-label" id="info-pregnancy-label"></span>
+          </div>
+        </div>
+
+        <!-- Period Start/End Action Hero Button (In Flow) -->
+        <div class="period-hero-action-container">
+          <button type="button" class="period-hero-btn" id="fab-period">
+            <span class="fab-icon" id="fab-period-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45,-1.32C5.4,15.36 2,12.28 2,8.5 2,5.42 4.42,3 7.5,3c1.74,0 3.41,0.81 4.5,2.09C13.09,3.81 14.76,3 16.5,3 19.58,3 22,5.42 22,8.5c0,3.78 -3.4,6.86 -8.55,11.54L12,21.35z"/></svg>
+            </span>
+            <span class="fab-label" id="fab-period-label" style="font-weight: 700; font-size: 1rem;">Adetim Başladı</span>
+          </button>
+        </div>
+
+        <!-- Phase Description Card -->
+        <div class="phase-card" id="phase-card">
+          <div class="phase-card-header">
+            <span class="phase-card-dot" id="phase-card-dot"></span>
+            <h3 class="phase-card-title" id="phase-card-title"></h3>
+          </div>
+          <p class="phase-card-description" id="phase-card-description"></p>
+          <div class="phase-card-tip" id="phase-card-tip">
+            <span class="phase-tip-icon">💡</span>
+            <p class="phase-tip-text" id="phase-tip-text"></p>
+          </div>
+        </div>
+
+        <!-- Today's Daily Symptoms & Health Insights Card -->
+        <div class="daily-insight-card" id="dashboard-daily-insight"></div>
+
+        <!-- Today's Medication Widget -->
+        <div class="today-meds-card" id="today-meds-card" style="display: none;">
+          <h3 class="today-meds-title" id="today-meds-title"></h3>
+          <div class="today-meds-list" id="today-meds-list"></div>
+        </div>
+      </section>
+
+      <!-- ==================== -->
+      <!-- CALENDAR SCREEN -->
+      <!-- ==================== -->
+      <section class="screen screen-calendar" id="screen-calendar" style="display: none;">
+        <div id="calendar-container"></div>
+      </section>
+
+      <!-- ==================== -->
+      <!-- SYMPTOM LOG SCREEN -->
+      <!-- ==================== -->
+      <section class="screen screen-symptoms" id="screen-symptoms" style="display: none;">
+        <div id="symptoms-container"></div>
+      </section>
+
+      <!-- ==================== -->
+      <!-- STATISTICS SCREEN -->
+      <!-- ==================== -->
+      <section class="screen screen-stats" id="screen-stats" style="display: none;">
+        <div id="stats-container"></div>
+      </section>
+
+      <!-- ==================== -->
+      <!-- SETTINGS SCREEN -->
+      <!-- ==================== -->
+      <section class="screen screen-settings" id="screen-settings" style="display: none;">
+        <div class="settings-content" id="settings-content">
+          
+          <!-- Profile & Personalization Section -->
+          <div class="settings-section">
+            <h3 class="settings-section-title" id="settings-profile-title"></h3>
+            
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <span class="settings-row-label">Yaşınız</span>
+              </div>
+              <div class="settings-row-control">
+                <button class="btn btn-ghost btn-sm" id="settings-age-minus">−</button>
+                <span class="settings-value mono" id="settings-age-value">25</span>
+                <button class="btn btn-ghost btn-sm" id="settings-age-plus">+</button>
+                <span class="settings-unit">yaş</span>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <span class="settings-row-label">Uygulama Amacı</span>
+              </div>
+              <div class="settings-row-control" style="flex: 1; justify-content: flex-end;">
+                <select id="settings-profile-goal" class="form-input" style="padding: 6px 10px; font-size: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); max-width: 190px;">
+                  <option value="track">🌸 Regl & Sağlık Takibi</option>
+                  <option value="ttc">👶 Bebek Planlama</option>
+                  <option value="prevent">🛡️ Korunma & Takip</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <span class="settings-row-label">Medeni Durum</span>
+              </div>
+              <div class="settings-row-control" style="flex: 1; justify-content: flex-end;">
+                <select id="settings-profile-marital" class="form-input" style="padding: 6px 10px; font-size: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); max-width: 190px;">
+                  <option value="single">Bekar</option>
+                  <option value="married">Evli / Birlikte</option>
+                  <option value="unspecified">Belirtilmedi</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <span class="settings-row-label">Doğum Geçmişi</span>
+              </div>
+              <div class="settings-row-control" style="flex: 1; justify-content: flex-end;">
+                <select id="settings-profile-birth" class="form-input" style="padding: 6px 10px; font-size: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); max-width: 190px;">
+                  <option value="no">Doğum Yapmadım</option>
+                  <option value="yes">Doğum Yaptım</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-row" id="settings-birth-years-row" style="display: none;">
+              <div class="settings-row-info">
+                <span class="settings-row-label">Son Doğum</span>
+              </div>
+              <div class="settings-row-control" style="flex: 1; justify-content: flex-end;">
+                <select id="settings-profile-birth-years" class="form-input" style="padding: 6px 10px; font-size: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); max-width: 190px;">
+                  <option value="under_1">🍼 1 Yıldan Az</option>
+                  <option value="1_2_years">🌿 1-2 Yıl Önce</option>
+                  <option value="3_5_years">🌸 3-5 Yıl Önce</option>
+                  <option value="5_plus">✨ 5+ Yıl Önce</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <span class="settings-row-label" id="settings-cycle-length-label"></span>
+              </div>
+              <div class="settings-row-control">
+                <button class="btn btn-ghost btn-sm" id="settings-cycle-minus">−</button>
+                <span class="settings-value mono" id="settings-cycle-length-value">28</span>
+                <button class="btn btn-ghost btn-sm" id="settings-cycle-plus">+</button>
+                <span class="settings-unit" id="settings-cycle-unit"></span>
+              </div>
+            </div>
+            
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <span class="settings-row-label" id="settings-period-length-label"></span>
+              </div>
+              <div class="settings-row-control">
+                <button class="btn btn-ghost btn-sm" id="settings-period-minus">−</button>
+                <span class="settings-value mono" id="settings-period-length-value">5</span>
+                <button class="btn btn-ghost btn-sm" id="settings-period-plus">+</button>
+                <span class="settings-unit" id="settings-period-unit"></span>
+              </div>
+            </div>
+
+            <!-- Düzensiz Döngü / PCOS Modu -->
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <span class="settings-row-label">Düzensiz Döngü / PCOS Modu 🔄</span>
+                <span style="font-size: 0.72rem; color: var(--text-secondary); display: block;">Sabit gün yerine esnek tahmin aralığı sunar</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settings-irregular-toggle">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Notifications Section -->
+          <div class="settings-section">
+            <h3 class="settings-section-title" id="settings-notifications-title"></h3>
+            
+            <div class="settings-row">
+              <span class="settings-row-label" id="settings-period-reminder-label"></span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settings-period-reminder" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="settings-row">
+              <span class="settings-row-label" id="settings-ovulation-reminder-label"></span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settings-ovulation-reminder" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="settings-row">
+              <span class="settings-row-label" id="settings-daily-reminder-label"></span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settings-daily-reminder" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="settings-row">
+              <span class="settings-row-label" id="settings-med-reminder-label"></span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settings-med-reminder" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="settings-row">
+              <span class="settings-row-label">Bilimsel Sağlık & İpucu Bildirimleri 💡</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settings-tips-reminder" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            
+            <button type="button" class="btn btn-secondary btn-block" id="settings-test-notification" style="margin-top: 12px; font-size: 0.9rem; gap: 8px;">
+              <span>🔔</span> <span>Test Bildirimi Gönder (Şimdi Dene)</span>
+            </button>
+          </div>
+
+          <!-- Appearance Section -->
+          <div class="settings-section">
+            <h3 class="settings-section-title" id="settings-appearance-title">Görünüm & Renk Teması</h3>
+            
+            <!-- Canlı Renk Paleti Seçici -->
+            <div style="margin-bottom: 14px;">
+              <span class="settings-row-label" style="font-weight: 600; font-size: 0.85rem;">🎨 Uygulama Renk Teması:</span>
+              <div class="theme-selector-grid" id="theme-selector-grid">
+                <button type="button" class="theme-swatch-btn" data-theme="rose">
+                  <div class="theme-color-circle" style="background: linear-gradient(135deg, #FFF4F6 50%, #E84D72 50%);">🌸</div>
+                  <span class="theme-swatch-name">Gül Kurusu</span>
+                </button>
+                <button type="button" class="theme-swatch-btn" data-theme="lavender">
+                  <div class="theme-color-circle" style="background: linear-gradient(135deg, #F8F5FF 50%, #9A62C6 50%);">💜</div>
+                  <span class="theme-swatch-name">Lavanta</span>
+                </button>
+                <button type="button" class="theme-swatch-btn" data-theme="peach">
+                  <div class="theme-color-circle" style="background: linear-gradient(135deg, #FFF6F0 50%, #EA6036 50%);">🍑</div>
+                  <span class="theme-swatch-name">Şeftali</span>
+                </button>
+                <button type="button" class="theme-swatch-btn" data-theme="sage">
+                  <div class="theme-color-circle" style="background: linear-gradient(135deg, #F3F8F4 50%, #448A5E 50%);">🌿</div>
+                  <span class="theme-swatch-name">Adaçayı</span>
+                </button>
+                <button type="button" class="theme-swatch-btn" data-theme="classic">
+                  <div class="theme-color-circle" style="background: linear-gradient(135deg, #FAFAF8 50%, #D4556B 50%);">🕊️</div>
+                  <span class="theme-swatch-name">Klasik Bej</span>
+                </button>
+                <button type="button" class="theme-swatch-btn" data-theme="dark">
+                  <div class="theme-color-circle" style="background: linear-gradient(135deg, #141424 50%, #E8637A 50%);">🌙</div>
+                  <span class="theme-swatch-name">Gece Modu</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="settings-row">
+              <span class="settings-row-label" id="settings-language-label">Dil / Language</span>
+              <div class="settings-row-control">
+                <button class="btn btn-ghost btn-sm lang-btn" id="settings-lang-tr" data-lang="tr">TR</button>
+                <button class="btn btn-ghost btn-sm lang-btn" id="settings-lang-en" data-lang="en">EN</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Security Section -->
+          <div class="settings-section">
+            <h3 class="settings-section-title" id="settings-security-title"></h3>
+            
+            <div class="settings-row">
+              <span class="settings-row-label" id="settings-pin-label"></span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settings-pin-toggle">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <button class="btn btn-ghost" id="settings-change-pin" style="display: none;"></button>
+          </div>
+
+          <!-- Medications Section -->
+          <div class="settings-section">
+            <h3 class="settings-section-title" id="settings-medications-title"></h3>
+            <div id="settings-medications-list"></div>
+            <button class="btn btn-ghost" id="settings-add-medication">
+              <span>+</span> <span id="settings-add-med-label"></span>
+            </button>
+          </div>
+
+          <!-- Data Section -->
+          <div class="settings-section">
+            <h3 class="settings-section-title" id="settings-data-title"></h3>
+            
+            <button class="btn btn-ghost btn-block" id="settings-export-json">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span id="settings-export-json-label"></span>
+            </button>
+            <button class="btn btn-ghost btn-block" id="settings-export-pdf">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              <span id="settings-export-pdf-label"></span>
+            </button>
+            <button class="btn btn-ghost btn-block" id="settings-import-json">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span id="settings-import-label"></span>
+            </button>
+            <button type="button" class="btn btn-ghost btn-block" id="settings-recovery-key-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              <span>🔑 Anonim Kurtarma Kodu (Kopyala / Geri Yükle)</span>
+            </button>
+            <input type="file" id="settings-import-file" accept=".json" style="display: none;">
+          </div>
+
+          <!-- Support & Feedback Section -->
+          <div class="settings-section">
+            <h3 class="settings-section-title" id="settings-support-title">💬 Destek & Geri Bildirim</h3>
+            <button type="button" class="btn btn-ghost btn-block" id="settings-feedback-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+              <span id="settings-feedback-label">Hata Bildir / Öneri Gönder</span>
+            </button>
+            <button type="button" class="btn btn-ghost btn-block" id="settings-faq-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span id="settings-faq-label">Sıkça Sorulan Sorular (SSS)</span>
+            </button>
+            <button type="button" class="btn btn-ghost btn-block" id="settings-kvkk-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>6698 Sayılı KVKK & Gizlilik Metni</span>
+            </button>
+            <button type="button" class="btn btn-ghost btn-block" id="settings-analytics-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              <span>📊 Beta Kullanım & Olay Analitiği (Metrikler)</span>
+            </button>
+          </div>
+
+          <!-- Danger Zone -->
+          <div class="settings-section settings-danger-zone">
+            <h3 class="settings-section-title danger" id="settings-danger-title"></h3>
+            <button class="btn btn-danger btn-block" id="settings-delete-all">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+              <span id="settings-delete-label"></span>
+            </button>
+          </div>
+
+          <!-- About -->
+          <div class="settings-about">
+            <p class="settings-version">Döngüm v1.0.0</p>
+            <p class="settings-privacy" id="settings-privacy-text"></p>
+            <p class="settings-disclaimer" id="settings-disclaimer-text" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 8px; line-height: 1.4;"></p>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ==================== -->
+    <!-- BOTTOM NAVIGATION -->
+    <!-- ==================== -->
+    <nav class="bottom-nav" id="bottom-nav">
+      <button class="nav-item active" data-screen="dashboard" id="nav-dashboard">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/></svg>
+        <span class="nav-label" id="nav-label-dashboard"></span>
+      </button>
+      <button class="nav-item" data-screen="calendar" id="nav-calendar">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span class="nav-label" id="nav-label-calendar"></span>
+      </button>
+      <button class="nav-item nav-item-center" data-screen="symptoms" id="nav-symptoms">
+        <div class="nav-center-btn">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <span class="nav-label" id="nav-label-symptoms"></span>
+      </button>
+      <button class="nav-item" data-screen="stats" id="nav-stats">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="nav-label" id="nav-label-stats"></span>
+      </button>
+      <button class="nav-item" data-screen="settings" id="nav-settings">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span class="nav-label" id="nav-label-settings"></span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- ============================================ -->
+  <!-- MODAL / DIALOG -->
+  <!-- ============================================ -->
+  <div class="modal-backdrop" id="modal-backdrop" style="display: none;">
+    <div class="modal" id="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-title"></h3>
+        <button class="btn btn-icon modal-close" id="modal-close" aria-label="Kapat">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer" id="modal-footer"></div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- TOAST CONTAINER -->
+  <!-- ============================================ -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ============================================ -->
+  <!-- PRINT REPORT (Hidden, used for PDF export) -->
+  <!-- ============================================ -->
+  <div class="print-report" id="print-report" style="display: none;"></div>
+
+  <!-- ============================================ -->
+  <!-- JAVASCRIPT MODULES -->
+  <!-- ============================================ -->
+  <!-- Sıralama önemli: bağımlılıklar önce yüklenmeli -->
+  <script src="js/i18n.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/cycle.js"></script>
+  <script src="js/pin.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/temperature.js"></script>
+  <script src="js/medication.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/symptoms.js"></script>
+  <script src="js/stats.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/pregnancy.js"></script>
+  <script src="js/herbal.js"></script>
+  <script src="js/support.js"></script>
+  <script src="js/analytics.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>

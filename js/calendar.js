@@ -1,10 +1,11 @@
 window.App = window.App || {};
 
 /**
- * Takvim Modülü (Advanced Interactive Calendar & Daily Health History Inspector)
- * 1. Tikli & Seçmeli Adet Günü İşaretleme (Tek dokunuşla Regl Oldum ✓)
- * 2. Aylar Arası Adet Süresi Kıyaslama Motoru (Örn: Bu Ay 7 Gün vs Geçen Ay 9 Gün Kıyaslaması)
- * 3. Detaylı Semptom, Ağrı, Ateş ve Birliktelik Geçmişi
+ * Takvim Modülü (Advanced Interactive Calendar & Period Checkmark Tracker)
+ * 1. Hızlı "Bugün Adetim Başladı / Devam Ediyor" Eylem Çubuğu
+ * 2. Takvimde Her Gün İçin Tek Dokunuşla Tikli Adet İşaretleme (✓ 1. Gün, ✓ 2. Gün...)
+ * 3. Aylar Arası Adet Süresi Kıyaslama Motoru (Örn: Bu Ay 7 Gün vs Geçen Ay 9 Gün)
+ * 4. Detaylı Semptom, Ağrı, Ateş ve Birliktelik Geçmişi
  */
 window.App.Calendar = {
   currentMonth: new Date(),
@@ -30,8 +31,39 @@ window.App.Calendar = {
 
     const t = (key, fallback) => (window.App.I18n ? window.App.I18n.t(key) : fallback);
 
+    // Bugünün regl durumu
+    const todayClassification = window.App.Cycle ? window.App.Cycle.classifyDate(todayStr) : {};
+    const isTodayPeriod = todayClassification.isPeriod;
+
+    // Aktif regl gün sayısı
+    let todayPeriodDayNum = 1;
+    if (isTodayPeriod && window.App.Data && window.App.Data.getPeriodForDate) {
+      const p = window.App.Data.getPeriodForDate(todayStr);
+      if (p && p.days) {
+        const sorted = [...p.days].sort();
+        todayPeriodDayNum = sorted.indexOf(todayStr) + 1;
+      }
+    }
+
     let html = `
       <div class="calendar-card">
+
+        <!-- 1. HIZLI ADET BAŞLAT / BİTİR EYLEM ÇUBUĞU -->
+        <div style="background: linear-gradient(135deg, rgba(212, 85, 107, 0.12), rgba(232, 114, 133, 0.05)); border: 1.5px solid var(--accent-period); border-radius: var(--radius-lg); padding: 12px 14px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm);">
+          <div>
+            <div style="font-weight: 700; font-size: 0.9rem; color: var(--accent-period); display: flex; align-items: center; gap: 6px;">
+              <span>🩸</span>
+              <span>${isTodayPeriod ? `Adet Dönemindesiniz (${todayPeriodDayNum}. Gün ✓)` : 'Bugün Adetiniz Başladı mı?'}</span>
+            </div>
+            <div style="font-size: 0.76rem; color: var(--text-secondary); margin-top: 2px;">
+              ${isTodayPeriod ? 'Kanamanız devam ettikçe günleri tikleyin veya bittiyse kapatın.' : 'Başladıysa tek tıkla işaretleyip kanama günlerini takip edin.'}
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm ${isTodayPeriod ? 'btn-secondary' : 'btn-primary'}" id="btn-quick-today-toggle" style="padding: 8px 14px; font-weight: 700; font-size: 0.82rem; border-radius: var(--radius-full); white-space: nowrap; ${isTodayPeriod ? 'border-color: var(--accent-period); color: var(--accent-period);' : ''}">
+            ${isTodayPeriod ? '✓ Adetim Bitti' : '🩸 Adetim Başladı'}
+          </button>
+        </div>
+
         <!-- Takvim Üst Başlığı & Ay Değişimi -->
         <div class="calendar-header">
           <button type="button" class="btn-cal-nav prev-month" aria-label="Önceki Ay">
@@ -89,7 +121,16 @@ window.App.Calendar = {
       if (classification) {
         if (classification.isPeriod) {
           classes.push('period');
-          dotHtml += `<span class="cal-dot dot-period" title="Regl ✓">✓</span>`;
+          // Kaçıncı gün olduğunu hesapla
+          let dayNum = '';
+          if (window.App.Data && window.App.Data.getPeriodForDate) {
+            const p = window.App.Data.getPeriodForDate(dateStr);
+            if (p && p.days) {
+              const sorted = [...p.days].sort();
+              dayNum = sorted.indexOf(dateStr) + 1;
+            }
+          }
+          dotHtml += `<span class="cal-dot dot-period" title="Regl ${dayNum}. Gün">✓ ${dayNum ? dayNum + '.G' : ''}</span>`;
         } else if (classification.isPredictedPeriod) {
           classes.push('predicted-period');
           dotHtml += `<span class="cal-dot dot-predicted" title="Tahmini"></span>`;
@@ -137,16 +178,16 @@ window.App.Calendar = {
         </div>
 
         <div class="calendar-legend">
-          <div class="legend-item"><span class="legend-dot dot-period">✓</span><span>${t('calendar.periodDays', 'Regl Oldum')}</span></div>
+          <div class="legend-item"><span class="legend-dot dot-period">✓</span><span>${t('calendar.periodDays', 'Adet Günü (✓)')}</span></div>
           <div class="legend-item"><span class="legend-dot dot-predicted"></span><span>${t('calendar.predictedPeriod', 'Tahmini')}</span></div>
           <div class="legend-item"><span class="legend-dot dot-ovulation"></span><span>${t('calendar.ovulation', 'Yumurtlama')}</span></div>
           <div class="legend-item"><span class="legend-dot dot-fertile"></span><span>${t('calendar.fertileWindow', 'Doğurgan')}</span></div>
         </div>
 
-        <!-- 1. AYLAR ARASI ADET SÜRESİ KIYASLAMA KARTI -->
+        <!-- 2. AYLAR ARASI ADET SÜRESİ KIYASLAMA KARTI -->
         <div id="cal-period-comparison-card" style="margin-top: 14px;"></div>
 
-        <!-- 2. SEÇİLEN GÜNÜN TİKLİ İŞARETLEME VE DETAY KARTI -->
+        <!-- 3. SEÇİLEN GÜNÜN TİKLİ İŞARETLEME VE DETAY KARTI -->
         <div id="day-detail-panel" class="cal-detail-card" style="display: block; margin-top: 14px;"></div>
       </div>
     `;
@@ -264,10 +305,20 @@ window.App.Calendar = {
     const classification = window.App.Cycle ? window.App.Cycle.classifyDate(dateStr) : {};
     const isPeriod = classification.isPeriod;
 
+    // Seçilen günün regl sıra numarası
+    let selectedDayPeriodNum = '';
+    if (isPeriod && window.App.Data && window.App.Data.getPeriodForDate) {
+      const p = window.App.Data.getPeriodForDate(dateStr);
+      if (p && p.days) {
+        const sorted = [...p.days].sort();
+        selectedDayPeriodNum = sorted.indexOf(dateStr) + 1;
+      }
+    }
+
     let phaseName = t('phases.follicular', 'Foliküler Faz');
     let phaseBadgeColor = 'var(--accent-phase)';
     if (classification.isPeriod) {
-      phaseName = '🩸 Regl Dönemi (İşaretli ✓)';
+      phaseName = `🩸 Regl Dönemi (${selectedDayPeriodNum ? selectedDayPeriodNum + '. Gün ' : ''}✓)`;
       phaseBadgeColor = 'var(--accent-period)';
     } else if (classification.isOvulation) {
       phaseName = '🌟 Yumurtlama Günü (Ovulasyon)';
@@ -354,7 +405,7 @@ window.App.Calendar = {
             <span style="font-size: 1.5rem;">🩸</span>
             <div>
               <strong style="font-size: 0.92rem; color: var(--text-primary); display: block;">
-                ${isPeriod ? 'Bu Gün Adet Oldum ✓' : 'Bugün Adet Oldum (İşaretle)'}
+                ${isPeriod ? `Bu Gün Adet Oldum (${selectedDayPeriodNum ? selectedDayPeriodNum + '. Gün ' : ''}✓)` : 'Bugün Adet Oldum (İşaretle)'}
               </strong>
               <span style="font-size: 0.75rem; color: var(--text-secondary);">
                 ${isPeriod ? 'Regl takviminizde işaretlendi. Kaldırmak için dokunun.' : 'Bu günü kanama günü olarak kaydetmek için dokunun.'}
@@ -439,7 +490,7 @@ window.App.Calendar = {
       }
 
       if (window.App.Utils && window.App.Utils.showToast) {
-        window.App.Utils.showToast('Regl takvimi ve süre kıyaslaması güncellendi 🌸', 'success');
+        window.App.Utils.showToast('Regl takvimi ve gün sıralaması güncellendi 🌸', 'success');
       }
 
       this.refresh();
@@ -457,6 +508,12 @@ window.App.Calendar = {
     this.container.querySelector('.prev-month')?.addEventListener('click', () => this.navigateMonth(-1));
     this.container.querySelector('.next-month')?.addEventListener('click', () => this.navigateMonth(1));
     this.container.querySelector('.today-btn')?.addEventListener('click', () => this.goToToday());
+
+    // Hızlı Bugün Regl Başlat/Bitir Butonu
+    this.container.querySelector('#btn-quick-today-toggle')?.addEventListener('click', () => {
+      const todayStr = window.App.Utils ? window.App.Utils.toISODateString(new Date()) : '';
+      this.togglePeriodDay(todayStr);
+    });
 
     this.container.querySelectorAll('.cal-day[data-date]').forEach(day => {
       day.addEventListener('click', (e) => {

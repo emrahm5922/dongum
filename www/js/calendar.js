@@ -43,7 +43,7 @@ window.App.Calendar = {
     const fertilityText = isFertileNow ? 'Yüksek 🌸' : 'Düşük 🛡️';
 
     let html = `
-      <div class="calendar-card" style="padding: 12px; background: var(--surface); border-radius: var(--radius-2xl);">
+      <div class="calendar-card">
 
         <!-- 1. ÜST KONTROL ÇUBUĞU (Yıl | Ay ve Hızlı Tik Modu) -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">

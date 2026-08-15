@@ -433,6 +433,9 @@ window.App.Calendar = {
           <div class="cal-day-header">
             <span class="cal-day-main">${i}</span>
             ${cycleDayNum ? `<span class="cal-day-sup">(${cycleDayNum})</span>` : ''}
+            
+            <!-- Seçmeli / Doğrudan Tik İşareti Kutucuğu -->
+            <div class="cal-day-check-badge" data-check-date="${dateStr}" title="Regl İşaretle / Kaldır">✓</div>
           </div>
           
           <div class="cal-emoji-stack">

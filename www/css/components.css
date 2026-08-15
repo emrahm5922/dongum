@@ -826,6 +826,42 @@
   margin-left: 1px;
 }
 
+/* Checkmark Badge on Day Cells */
+.cal-day-check-badge {
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 900;
+  cursor: pointer;
+  z-index: 3;
+  transition: all 0.15s ease;
+}
+
+.cal-day.period .cal-day-check-badge {
+  background: #FFFFFF;
+  color: #D96B58;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.cal-day:not(.period) .cal-day-check-badge {
+  border: 1px dashed rgba(212, 85, 107, 0.35);
+  color: transparent;
+  opacity: 0.4;
+}
+
+.cal-day:not(.period):hover .cal-day-check-badge,
+.cal-day.selected:not(.period) .cal-day-check-badge {
+  border-color: #D4556B;
+  opacity: 1;
+}
+
 /* Emoji Stack inside Calendar Cells */
 .cal-emoji-stack {
   display: flex;

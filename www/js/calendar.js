@@ -2,8 +2,8 @@ window.App = window.App || {};
 
 /**
  * Takvim Modülü (Advanced Interactive Calendar & Period Checkmark Tracker)
- * 1. Hızlı "Bugün Adetim Başladı / Devam Ediyor" Eylem Çubuğu
- * 2. Takvimde Her Gün İçin Tek Dokunuşla Tikli Adet İşaretleme (✓ 1. Gün, ✓ 2. Gün...)
+ * 1. Tek Dokunuşla Hızlı Tikleme Modu (Quick Tap Mode: Güne basınca anında Regl ✓ koyar)
+ * 2. Hızlı "Bugün Adetim Başladı / Bitti" Eylem Çubuğu
  * 3. Aylar Arası Adet Süresi Kıyaslama Motoru (Örn: Bu Ay 7 Gün vs Geçen Ay 9 Gün)
  * 4. Detaylı Semptom, Ağrı, Ateş ve Birliktelik Geçmişi
  */
@@ -11,6 +11,7 @@ window.App.Calendar = {
   currentMonth: new Date(),
   selectedDate: null,
   container: null,
+  quickMode: true, // Varsayılan olarak doğrudan tikleme modu açık
 
   render(container) {
     this.container = container;
@@ -35,32 +36,33 @@ window.App.Calendar = {
     const todayClassification = window.App.Cycle ? window.App.Cycle.classifyDate(todayStr) : {};
     const isTodayPeriod = todayClassification.isPeriod;
 
-    // Aktif regl gün sayısı
-    let todayPeriodDayNum = 1;
-    if (isTodayPeriod && window.App.Data && window.App.Data.getPeriodForDate) {
-      const p = window.App.Data.getPeriodForDate(todayStr);
-      if (p && p.days) {
-        const sorted = [...p.days].sort();
-        todayPeriodDayNum = sorted.indexOf(todayStr) + 1;
-      }
-    }
-
     let html = `
       <div class="calendar-card">
 
         <!-- 1. HIZLI ADET BAŞLAT / BİTİR EYLEM ÇUBUĞU -->
-        <div style="background: linear-gradient(135deg, rgba(212, 85, 107, 0.12), rgba(232, 114, 133, 0.05)); border: 1.5px solid var(--accent-period); border-radius: var(--radius-lg); padding: 12px 14px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm);">
+        <div style="background: linear-gradient(135deg, rgba(212, 85, 107, 0.12), rgba(232, 114, 133, 0.05)); border: 1.5px solid var(--accent-period); border-radius: var(--radius-lg); padding: 10px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm);">
           <div>
-            <div style="font-weight: 700; font-size: 0.9rem; color: var(--accent-period); display: flex; align-items: center; gap: 6px;">
+            <div style="font-weight: 700; font-size: 0.88rem; color: var(--accent-period); display: flex; align-items: center; gap: 6px;">
               <span>🩸</span>
-              <span>${isTodayPeriod ? `Adet Dönemindesiniz (${todayPeriodDayNum}. Gün ✓)` : 'Bugün Adetiniz Başladı mı?'}</span>
+              <span>${isTodayPeriod ? 'Adet Dönemindesiniz ✓' : 'Bugün Adetiniz Başladı mı?'}</span>
             </div>
-            <div style="font-size: 0.76rem; color: var(--text-secondary); margin-top: 2px;">
-              ${isTodayPeriod ? 'Kanamanız devam ettikçe günleri tikleyin veya bittiyse kapatın.' : 'Başladıysa tek tıkla işaretleyip kanama günlerini takip edin.'}
+            <div style="font-size: 0.74rem; color: var(--text-secondary); margin-top: 2px;">
+              ${isTodayPeriod ? 'Kanama devam ettikçe günleri tikleyin veya bittiyse kapatın.' : 'Başladıysa butona basarak bugünü hemen işaretleyin.'}
             </div>
           </div>
           <button type="button" class="btn btn-sm ${isTodayPeriod ? 'btn-secondary' : 'btn-primary'}" id="btn-quick-today-toggle" style="padding: 8px 14px; font-weight: 700; font-size: 0.82rem; border-radius: var(--radius-full); white-space: nowrap; ${isTodayPeriod ? 'border-color: var(--accent-period); color: var(--accent-period);' : ''}">
             ${isTodayPeriod ? '✓ Adetim Bitti' : '🩸 Adetim Başladı'}
+          </button>
+        </div>
+
+        <!-- 2. TEK DOKUNUŞLA TİKLEME MODU AÇ/KAPA DÜĞMESİ -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-secondary); padding: 8px 12px; border-radius: var(--radius-md); margin-bottom: 12px; font-size: 0.78rem;">
+          <span style="font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+            👆 <strong>Tek Dokunuşla Tikleme:</strong>
+            <span style="color: var(--text-secondary); font-weight: normal;">(Güne dokununca anında Regl ✓ koyar)</span>
+          </span>
+          <button type="button" class="btn btn-sm ${this.quickMode ? 'btn-primary' : 'btn-secondary'}" id="btn-toggle-quick-mode" style="padding: 4px 10px; font-size: 0.75rem; font-weight: 700; border-radius: var(--radius-full);">
+            ${this.quickMode ? 'AÇIK (Tik Modu) ✓' : 'KAPALI'}
           </button>
         </div>
 
@@ -121,7 +123,7 @@ window.App.Calendar = {
       if (classification) {
         if (classification.isPeriod) {
           classes.push('period');
-          dotHtml += `<span class="cal-dot dot-period" title="Regl"></span>`;
+          dotHtml += `<span class="cal-dot dot-period" title="Regl ✓"></span>`;
         } else if (classification.isPredictedPeriod) {
           classes.push('predicted-period');
           dotHtml += `<span class="cal-dot dot-predicted" title="Tahmini"></span>`;
@@ -151,7 +153,7 @@ window.App.Calendar = {
       }
 
       html += `
-        <div class="${classes.join(' ')}" data-date="${dateStr}">
+        <div class="${classes.join(' ')}" data-date="${dateStr}" title="Regl İşaretlemek İçin Dokunun">
           <span class="day-num">${i}</span>
           <div class="day-dots">${dotHtml}</div>
         </div>
@@ -169,16 +171,16 @@ window.App.Calendar = {
         </div>
 
         <div class="calendar-legend">
-          <div class="legend-item"><span class="legend-dot dot-period"></span><span>${t('calendar.periodDays', 'Adet Günü')}</span></div>
+          <div class="legend-item"><span class="legend-dot dot-period"></span><span>${t('calendar.periodDays', 'Adet Oldum (✓)')}</span></div>
           <div class="legend-item"><span class="legend-dot dot-predicted"></span><span>${t('calendar.predictedPeriod', 'Tahmini')}</span></div>
           <div class="legend-item"><span class="legend-dot dot-ovulation"></span><span>${t('calendar.ovulation', 'Yumurtlama')}</span></div>
           <div class="legend-item"><span class="legend-dot dot-fertile"></span><span>${t('calendar.fertileWindow', 'Doğurgan')}</span></div>
         </div>
 
-        <!-- 2. AYLAR ARASI ADET SÜRESİ KIYASLAMA KARTI -->
+        <!-- 3. AYLAR ARASI ADET SÜRESİ KIYASLAMA KARTI -->
         <div id="cal-period-comparison-card" style="margin-top: 14px;"></div>
 
-        <!-- 3. SEÇİLEN GÜNÜN TİKLİ İŞARETLEME VE DETAY KARTI -->
+        <!-- 4. SEÇİLEN GÜNÜN TİKLİ İŞARETLEME VE DETAY KARTI -->
         <div id="day-detail-panel" class="cal-detail-card" style="display: block; margin-top: 14px;"></div>
       </div>
     `;
@@ -296,20 +298,10 @@ window.App.Calendar = {
     const classification = window.App.Cycle ? window.App.Cycle.classifyDate(dateStr) : {};
     const isPeriod = classification.isPeriod;
 
-    // Seçilen günün regl sıra numarası
-    let selectedDayPeriodNum = '';
-    if (isPeriod && window.App.Data && window.App.Data.getPeriodForDate) {
-      const p = window.App.Data.getPeriodForDate(dateStr);
-      if (p && p.days) {
-        const sorted = [...p.days].sort();
-        selectedDayPeriodNum = sorted.indexOf(dateStr) + 1;
-      }
-    }
-
     let phaseName = t('phases.follicular', 'Foliküler Faz');
     let phaseBadgeColor = 'var(--accent-phase)';
     if (classification.isPeriod) {
-      phaseName = `🩸 Regl Dönemi (${selectedDayPeriodNum ? selectedDayPeriodNum + '. Gün ' : ''}✓)`;
+      phaseName = '🩸 Regl Dönemi (İşaretli ✓)';
       phaseBadgeColor = 'var(--accent-period)';
     } else if (classification.isOvulation) {
       phaseName = '🌟 Yumurtlama Günü (Ovulasyon)';
@@ -396,7 +388,7 @@ window.App.Calendar = {
             <span style="font-size: 1.5rem;">🩸</span>
             <div>
               <strong style="font-size: 0.92rem; color: var(--text-primary); display: block;">
-                ${isPeriod ? `Bu Gün Adet Oldum (${selectedDayPeriodNum ? selectedDayPeriodNum + '. Gün ' : ''}✓)` : 'Bugün Adet Oldum (İşaretle)'}
+                ${isPeriod ? 'Bu Gün Adet Oldum ✓' : 'Bugün Adet Oldum (İşaretle)'}
               </strong>
               <span style="font-size: 0.75rem; color: var(--text-secondary);">
                 ${isPeriod ? 'Regl takviminizde işaretlendi. Kaldırmak için dokunun.' : 'Bu günü kanama günü olarak kaydetmek için dokunun.'}
@@ -458,7 +450,7 @@ window.App.Calendar = {
 
   goToToday() {
     this.currentMonth = new Date();
-    const todayStr = window.App.Utils.toISODateString(this.currentMonth);
+    const todayStr = window.App.Utils ? window.App.Utils.toISODateString(this.currentMonth);
     this.selectedDate = todayStr;
     this.refresh();
     this.renderDayDetail(todayStr);
@@ -481,7 +473,7 @@ window.App.Calendar = {
       }
 
       if (window.App.Utils && window.App.Utils.showToast) {
-        window.App.Utils.showToast('Regl takvimi ve gün sıralaması güncellendi 🌸', 'success');
+        window.App.Utils.showToast('Regl takvimi güncellendi 🌸', 'success');
       }
 
       this.refresh();
@@ -506,10 +498,25 @@ window.App.Calendar = {
       this.togglePeriodDay(todayStr);
     });
 
+    // Tek Dokunuşla Tikleme Modu Butonu
+    this.container.querySelector('#btn-toggle-quick-mode')?.addEventListener('click', () => {
+      this.quickMode = !this.quickMode;
+      this.refresh();
+    });
+
+    // Takvim Hücrelerine Tıklama
     this.container.querySelectorAll('.cal-day[data-date]').forEach(day => {
       day.addEventListener('click', (e) => {
         const dateStr = e.currentTarget.getAttribute('data-date');
-        if (dateStr) this.selectDate(dateStr);
+        if (!dateStr) return;
+
+        if (this.quickMode) {
+          // Tik Modu Açık: Güne dokunur dokunmaz anında Regl ✓ işaretini koyar/kaldırır!
+          this.togglePeriodDay(dateStr);
+        } else {
+          // Seçim Modu: Güne tıklar ve detayını açar
+          this.selectDate(dateStr);
+        }
       });
     });
   },

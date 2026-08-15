@@ -3,7 +3,7 @@ window.App = window.App || {};
 /**
  * Gelişmiş WomanLog Pro Takvim Modülü (WomanLog Pro Cloned Edition)
  * - 30 WomanLog Pro Temaları & 3D Arka Fon Seçici (Floral, Sakura 3D, Lavanta, Nane, Şeftali, Gece Modu)
- * - Kesintisiz Akıcı Ay Akışı (Nisan, Mayıs, Haziran...)
+ * - 12 Aylık Yıllık Genel Bakış Modu (Yıl Görünümü) & Aylık Detay Modu (Ay Görünümü)
  * - Kiremit dolgulu regl kartları, çizgili tahmin kartları, mor 3 yapraklı doğurganlık tomurcukları
  * - Zengin İkon Sistemi: Kalp (❤️), İlaç (💊), Yüz İfadeleri (😊), Akıntı (💧), Aşerme/Meyve (🍓, 🍰), Ateş (🔥), Bakım (💄), Egzersiz (🧘)
  * - Uzun basıldığında (Long-Press) gün detayları ufak penceresi
@@ -76,6 +76,169 @@ window.App.Calendar = {
   refresh() {
     if (!this.container) return;
 
+    if (this.viewMode === 'year') {
+      this.renderYearView();
+    } else {
+      this.renderMonthView();
+    }
+  },
+
+  /**
+   * =========================================================================
+   * 12 AYLIK YILLIK GENEL BAKIŞ GÖRÜNÜMÜ (WomanLog Pro Year View)
+   * =========================================================================
+   */
+  renderYearView() {
+    const year = this.currentMonth.getFullYear();
+    const today = new Date();
+    const todayStr = window.App.Utils ? window.App.Utils.toISODateString(today) : '';
+
+    const trMonths = [
+      'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+      'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+    ];
+
+    let html = `
+      <div class="calendar-card ${this.currentSkin}">
+
+        <!-- ÜST KONTROL BARI (Yıl | Ay) -->
+        <div class="cal-top-segmented-bar">
+          <div class="cal-segmented-pill-box">
+            <button type="button" class="cal-segmented-pill active" id="btn-view-year">Yıl</button>
+            <button type="button" class="cal-segmented-pill" id="btn-view-month">Ay</button>
+          </div>
+          <button type="button" id="btn-open-skins" class="btn btn-sm btn-ghost" style="color: #FFFFFF; font-size: 0.8rem; font-weight: 700; margin-left: 10px; background: rgba(0,0,0,0.12); border-radius: var(--radius-full); padding: 4px 10px;">
+            🎨 Temalar
+          </button>
+        </div>
+
+        <!-- YIL BAŞLIĞI VE GEÇİŞ OKLARI -->
+        <div class="cal-month-header-row" style="margin-bottom: 8px;">
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <button type="button" class="btn-cal-nav prev-year" aria-label="Önceki Yıl" style="background: rgba(255,255,255,0.7); border: none; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button type="button" class="btn-cal-nav next-year" aria-label="Sonraki Yıl" style="background: rgba(255,255,255,0.7); border: none; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+          <div class="cal-month-title-right" style="font-size: 1.25rem;">${year} Yılı Genel Bakış</div>
+        </div>
+
+        <!-- 12 AYLIK MİNİ TAKVİM IZGARASI -->
+        <div class="cal-year-grid">
+    `;
+
+    for (let m = 0; m < 12; m++) {
+      const monthDaysCount = new Date(year, m + 1, 0).getDate();
+      const firstDay = new Date(year, m, 1).getDay();
+      let startOffset = firstDay === 0 ? 6 : firstDay - 1;
+
+      html += `
+        <div class="cal-mini-month-card" data-month-index="${m}" title="${trMonths[m]} ayını detaylı açmak için dokunun">
+          <div class="cal-mini-month-title">${trMonths[m]}</div>
+          
+          <div class="cal-mini-days-grid">
+            <div style="font-size: 0.55rem; color: #888; font-weight: 700;">P</div>
+            <div style="font-size: 0.55rem; color: #888; font-weight: 700;">S</div>
+            <div style="font-size: 0.55rem; color: #888; font-weight: 700;">Ç</div>
+            <div style="font-size: 0.55rem; color: #888; font-weight: 700;">P</div>
+            <div style="font-size: 0.55rem; color: #888; font-weight: 700;">C</div>
+            <div style="font-size: 0.55rem; color: #888; font-weight: 700;">C</div>
+            <div style="font-size: 0.55rem; color: #888; font-weight: 700;">P</div>
+      `;
+
+      // Boş günler
+      for (let b = 0; b < startOffset; b++) {
+        html += `<div class="cal-mini-day" style="opacity: 0.15;">•</div>`;
+      }
+
+      // Günler
+      for (let d = 1; d <= monthDaysCount; d++) {
+        const dateStr = `${year}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const isToday = dateStr === todayStr;
+
+        let classification = null;
+        if (window.App.Cycle && typeof window.App.Cycle.classifyDate === 'function') {
+          classification = window.App.Cycle.classifyDate(dateStr);
+        }
+
+        let dayClass = 'cal-mini-day';
+        if (isToday) dayClass += ' today';
+
+        if (classification) {
+          if (classification.isPeriod) dayClass += ' period';
+          else if (classification.isPredictedPeriod) dayClass += ' predicted';
+          else if (classification.isOvulation || classification.isFertile) dayClass += ' fertile';
+        }
+
+        html += `<div class="${dayClass}">${d}</div>`;
+      }
+
+      html += `
+          </div>
+        </div>
+      `;
+    }
+
+    html += `
+        </div>
+
+        <!-- YILLIK GÖSTERGE LEJANDI -->
+        <div style="background: rgba(255,255,255,0.9); border-radius: var(--radius-lg); padding: 8px 12px; margin-top: 12px; display: flex; justify-content: space-around; font-size: 0.76rem; font-weight: 700;">
+          <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #D96B58;"></span> Regl</span>
+          <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #F8BBD0;"></span> Tahmini</span>
+          <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #E1BEE7;"></span> Doğurgan</span>
+        </div>
+      </div>
+    `;
+
+    this.container.innerHTML = html;
+    this.attachYearEventListeners();
+  },
+
+  attachYearEventListeners() {
+    if (!this.container) return;
+
+    this.container.querySelector('#btn-view-month')?.addEventListener('click', () => {
+      this.viewMode = 'month';
+      this.refresh();
+    });
+
+    this.container.querySelector('.prev-year')?.addEventListener('click', () => {
+      this.currentMonth.setFullYear(this.currentMonth.getFullYear() - 1);
+      this.refresh();
+    });
+
+    this.container.querySelector('.next-year')?.addEventListener('click', () => {
+      this.currentMonth.setFullYear(this.currentMonth.getFullYear() + 1);
+      this.refresh();
+    });
+
+    this.container.querySelector('#btn-open-skins')?.addEventListener('click', () => {
+      this.showSkinPickerModal();
+    });
+
+    // Herhangi bir mini aya tıklandığında doğrudan o ayın detayına geç
+    this.container.querySelectorAll('.cal-mini-month-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const m = parseInt(card.getAttribute('data-month-index'), 10);
+        this.currentMonth.setMonth(m);
+        this.viewMode = 'month';
+        this.refresh();
+        if (window.App.Utils && window.App.Utils.showToast) {
+          window.App.Utils.showToast(`${this.currentMonth.getFullYear()} - ${m + 1}. Ay Açıldı`, 'info');
+        }
+      });
+    });
+  },
+
+  /**
+   * =========================================================================
+   * AYLIK DETAYLI WOMANLOG PRO GÖRÜNÜMÜ (Month View)
+   * =========================================================================
+   */
+  renderMonthView() {
     const year = this.currentMonth.getFullYear();
     const month = this.currentMonth.getMonth();
     const today = new Date();
@@ -196,33 +359,16 @@ window.App.Calendar = {
         }
       }
 
-      // ==========================================================
-      // WOMANLOG PRO İKONLARI (Kalp, İlaç, Semptomlar)
-      // ==========================================================
+      // WOMANLOG PRO İKONLARI
       if (window.App.Data && typeof window.App.Data.getSymptoms === 'function') {
         const sym = window.App.Data.getSymptoms(dateStr);
         if (sym) {
-          // 1. Ruh Hali Emojileri
-          const moodEmojis = {
-            great: '😄',
-            good: '🥰',
-            okay: '😎',
-            bad: '😔',
-            terrible: '😷'
-          };
+          const moodEmojis = { great: '😄', good: '🥰', okay: '😎', bad: '😔', terrible: '😷' };
           if (sym.mood && moodEmojis[sym.mood]) emojis.push(moodEmojis[sym.mood]);
 
-          // 2. Ağrı / Sancı Seviyesi
-          const painEmojis = {
-            mild: '🌱',
-            moderate: '⚡',
-            severe: '🔥'
-          };
-          if (sym.painLevel && painEmojis[sym.painLevel]) {
-            emojis.push(painEmojis[sym.painLevel]);
-          }
+          const painEmojis = { mild: '🌱', moderate: '⚡', severe: '🔥' };
+          if (sym.painLevel && painEmojis[sym.painLevel]) emojis.push(painEmojis[sym.painLevel]);
 
-          // 3. Ağrı Hissedilen Bölgeler
           if (sym.painAreas && Array.isArray(sym.painAreas)) {
             if (sym.painAreas.includes('head')) emojis.push('🤕');
             if (sym.painAreas.includes('lowerBack') || sym.painAreas.includes('upperBack')) emojis.push('🩹');
@@ -231,38 +377,31 @@ window.App.Calendar = {
             if (sym.painAreas.includes('abdomen') && !emojis.includes('⚡')) emojis.push('⚡');
           }
 
-          // 4. Kanama / Akıntı / Leke
           if (sym.flow && sym.flow !== 'none') {
             emojis.push(sym.flow === 'spotting' ? '💧' : '🩸');
           }
 
-          // 5. Servikal Akıntı Türü
           if (sym.discharge && sym.discharge !== 'none') {
             if (sym.discharge === 'eggWhite') emojis.push('🥚');
             else if (!emojis.includes('💧')) emojis.push('💧');
           }
 
-          // 6. Yaşam Tarzı (Birliktelik & Spor - WomanLog İkonları)
           if (sym.intimacy) emojis.push('❤️');
           if (sym.exercise) emojis.push('🧘');
 
-          // 7. Su Tüketimi
           if (sym.water !== undefined && Number(sym.water) >= 6) {
             emojis.push('🥛');
           }
 
-          // 8. Uyku Kalitesi
           if (sym.sleep) {
             if (sym.sleep === 'terrible' || sym.sleep === 'bad') emojis.push('🥱');
             else if (sym.sleep === 'great' || sym.sleep === 'good') emojis.push('🌙');
           }
 
-          // 9. İlaç / Doğum Kontrol (WomanLog Pill İkonu)
           if (sym.birthControlTaken || (sym.medications && sym.medications.length > 0)) {
             emojis.push('💊');
           }
 
-          // 10. Özel Belirtiler & Aşerme
           if (sym.customSymptoms && Array.isArray(sym.customSymptoms)) {
             sym.customSymptoms.forEach(cs => {
               const text = String(cs);
@@ -287,7 +426,6 @@ window.App.Calendar = {
         }
       }
 
-      // Emojileri tekilleştir (Maksimum 3 emoji yan yana)
       const uniqueEmojis = Array.from(new Set(emojis)).slice(0, 3);
 
       html += `
@@ -297,18 +435,15 @@ window.App.Calendar = {
             ${cycleDayNum ? `<span class="cal-day-sup">(${cycleDayNum})</span>` : ''}
           </div>
           
-          <!-- Ruh Hali & Sağlık Emojileri -->
           <div class="cal-emoji-stack">
             ${uniqueEmojis.map(e => `<span>${e}</span>`).join('')}
           </div>
 
-          <!-- Doğurganlık Çiçeği (WomanLog Mor Küçük Tomurcuk) -->
           ${isFertile && !isPeriod ? `<div class="cal-fertile-flower">🌸</div>` : ''}
         </div>
       `;
     }
 
-    // Sonraki ayın günleri (42 hücreye tamamla)
     const totalCells = startOffset + daysInMonth;
     const remainingCells = 42 - totalCells;
     for (let i = 1; i <= remainingCells; i++) {
@@ -324,7 +459,7 @@ window.App.Calendar = {
     html += `
         </div>
 
-        <!-- 5. ALT DURUM BİLGİ ŞERİDİ (WomanLog Pro Formatı) -->
+        <!-- 5. ALT DURUM BİLGİ ŞERİDİ -->
         <div class="cal-bottom-status-ribbon">
           <span>Kalan günler: <strong>${daysUntilPeriod}</strong>. Hamile kalma şansı: <strong>${fertilityText}</strong></span>
           <span style="font-size: 1.1rem; cursor: pointer;">⋮</span>
@@ -339,7 +474,7 @@ window.App.Calendar = {
     `;
 
     this.container.innerHTML = html;
-    this.attachEventListeners();
+    this.attachMonthEventListeners();
 
     this.renderComparisonCard();
 
@@ -347,9 +482,6 @@ window.App.Calendar = {
     this.renderDayDetail(targetDate);
   },
 
-  /**
-   * BASILI TUTULDUĞUNDA AÇILAN GÜN DETAYI UFAK PENCERESİ (Quick Preview Popup)
-   */
   showDayPreviewPopup(dateStr) {
     const dateObj = window.App.Utils ? window.App.Utils.parseDate(dateStr) : new Date(dateStr);
     const formattedDate = window.App.Utils ? window.App.Utils.formatDateLong(dateObj) : dateStr;
@@ -490,7 +622,6 @@ window.App.Calendar = {
       `;
     }
 
-    // Modal Pencereyi Oluştur
     const modal = document.createElement('div');
     modal.className = 'day-preview-modal-overlay';
     modal.innerHTML = `
@@ -544,9 +675,6 @@ window.App.Calendar = {
     });
   },
 
-  /**
-   * Aylar Arası Adet Süresi Kıyaslama Kartı
-   */
   renderComparisonCard() {
     const compContainer = this.container ? this.container.querySelector('#cal-period-comparison-card') : null;
     if (!compContainer) return;
@@ -632,9 +760,6 @@ window.App.Calendar = {
     `;
   },
 
-  /**
-   * Seçilen Günün Tikli Adet Girişi & Sağlık Özeti
-   */
   renderDayDetail(dateStr) {
     const panel = this.container ? this.container.querySelector('#day-detail-panel') : null;
     if (!panel) return;
@@ -697,7 +822,6 @@ window.App.Calendar = {
           </button>
         </div>
 
-        <!-- TİKLİ ADET İŞARETLEME KUTUSU -->
         <div id="btn-period-toggle-card" style="background: ${isPeriod ? '#D96B58' : 'var(--bg-secondary)'}; border: 1.5px solid ${isPeriod ? '#D96B58' : 'var(--border)'}; border-radius: var(--radius-lg); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s ease; margin-bottom: 12px; color: ${isPeriod ? '#ffffff' : 'var(--text-primary)'};">
           <div style="display: flex; align-items: center; gap: 10px;">
             <span style="font-size: 1.5rem;">🩸</span>
@@ -716,7 +840,6 @@ window.App.Calendar = {
           </div>
         </div>
 
-        <!-- O Günün Sağlık & Ruh Hali Emojileri -->
         <div style="padding-top: 8px; border-top: 1px dashed var(--border);">
           <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 6px;">
             📝 Bu Günün Kayıtları:
@@ -796,13 +919,12 @@ window.App.Calendar = {
     }
   },
 
-  attachEventListeners() {
+  attachMonthEventListeners() {
     if (!this.container) return;
 
     this.container.querySelector('.prev-month')?.addEventListener('click', () => this.navigateMonth(-1));
     this.container.querySelector('.next-month')?.addEventListener('click', () => this.navigateMonth(1));
 
-    // Yıl / Ay Düğmeleri
     this.container.querySelector('#btn-view-year')?.addEventListener('click', () => {
       this.viewMode = 'year';
       this.refresh();
@@ -812,12 +934,10 @@ window.App.Calendar = {
       this.refresh();
     });
 
-    // WomanLog Pro Tema Seçici Butonu
     this.container.querySelector('#btn-open-skins')?.addEventListener('click', () => {
       this.showSkinPickerModal();
     });
 
-    // Takvim Hücrelerine Tıklama & BASILI TUTMA (Long-Press)
     this.container.querySelectorAll('.cal-day[data-date]').forEach(day => {
       const dateStr = day.getAttribute('data-date');
       if (!dateStr) return;
@@ -843,24 +963,20 @@ window.App.Calendar = {
         }
       };
 
-      // Dokunmatik Ekran (Mobil)
       day.addEventListener('touchstart', startPress, { passive: true });
       day.addEventListener('touchend', cancelPress);
       day.addEventListener('touchmove', cancelPress);
       day.addEventListener('touchcancel', cancelPress);
 
-      // Fare Dinleyicileri (Masaüstü & Web)
       day.addEventListener('mousedown', startPress);
       day.addEventListener('mouseup', cancelPress);
       day.addEventListener('mouseleave', cancelPress);
 
-      // Sağ Tıklama ile de Popup Açma
       day.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         this.showDayPreviewPopup(dateStr);
       });
 
-      // Normal Tıklama (Basılı tutulmadıysa çalışır)
       day.addEventListener('click', () => {
         if (isLongPress) {
           isLongPress = false;

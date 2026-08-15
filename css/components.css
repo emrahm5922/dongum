@@ -600,6 +600,85 @@
   color: #FFFFFF !important;
 }
 
+/* WomanLog Pro 12-Month Year View */
+.cal-year-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 4px;
+}
+@media (min-width: 600px) {
+  .cal-year-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (min-width: 900px) {
+  .cal-year-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.cal-mini-month-card {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 8px 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+.cal-mini-month-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(212, 85, 107, 0.18);
+  border-color: #D4556B;
+}
+
+.cal-mini-month-title {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #1A1A1A;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.cal-mini-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+}
+
+.cal-mini-day {
+  font-size: 0.6rem;
+  font-weight: 600;
+  line-height: 1.4;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  color: #444444;
+}
+
+.cal-mini-day.period {
+  background: #D96B58;
+  color: #FFFFFF;
+  font-weight: 800;
+}
+.cal-mini-day.predicted {
+  background: #F8BBD0;
+  color: #D4556B;
+  font-weight: 800;
+}
+.cal-mini-day.fertile {
+  background: #E1BEE7;
+  color: #6A1B9A;
+}
+.cal-mini-day.today {
+  border: 1px solid #222222;
+  font-weight: 800;
+}
+
 /* Top Segmented Tab matching Screenshot (Yıl | Ay) */
 .cal-top-segmented-bar {
   background: #E87A8D;

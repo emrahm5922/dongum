@@ -1,0 +1,11 @@
+node_modules/
+.gradle/
+build/
+android/app/build/
+android/.gradle/
+ios/App/Pods/
+ios/App/build/
+Dongum_Guncel.apk
+Dongum_v1.0.apk
+*.apk
+*.log

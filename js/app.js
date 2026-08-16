@@ -874,60 +874,132 @@ window.App.Main = (() => {
           });
         });
       } else if (userGoal === 'ttc') {
-        // BEBEK PLANLAMA MODU: Doğurganlık Zirvesi & Gelişmiş Takip Araçları
+        // BEBEK PLANLAMA MODU: 5 Ana Sütun (Isı Haritası, Mukus, BBT Grafiği, LH Tarayıcı, 2WW, Hamileyim!)
         const prob = cycleInfo.pregnancyProbability || 5;
         const hasIntimacy = !!todaySymptoms.intimacy;
         const tempVal = todaySymptoms.temperature;
+        const dischargeVal = todaySymptoms.discharge;
+        const lhVal = todaySymptoms.lhTest;
+        const folicTaken = !!todaySymptoms.folicAcid;
+
+        const heatmapHtml = App.Pregnancy ? App.Pregnancy.getFertilityHeatmapHtml(cycleInfo) : '';
+
+        const dischargeLabels = {
+          egg_white: 'Yumurta Akı 🍳',
+          watery: 'Sulu 💧',
+          creamy: 'Kremsi 🥛',
+          sticky: 'Kuru 🏜️'
+        };
 
         modeCard.innerHTML = `
-          <div class="mode-card-title">
-            <span>👶 Hamilelik & Gebe Kalma Şansı</span>
-            <span style="font-size: 0.75rem; color: #b87314; font-weight: 700;">%${prob} Olasılık (${cycleInfo.isFertileWindow ? 'Zirve Dönem' : 'Düşük'})</span>
-          </div>
-          <div style="font-size: 0.85rem; line-height: 1.4; color: var(--text-primary); margin-bottom: 10px;">
+          <!-- 1. Dinamik Doğurganlık Isı Haritası -->
+          ${heatmapHtml}
+
+          <!-- Ana Durum Açıklaması -->
+          <div style="font-size: 0.84rem; line-height: 1.45; color: var(--text-primary); margin-bottom: 10px; background: rgba(230, 160, 60, 0.08); padding: 8px 12px; border-radius: var(--radius-md); border-left: 3px solid #e6a03c;">
             ${cycleInfo.isFertileWindow 
-              ? '<strong>🌟 Zirve Doğurganlık Penceresindesiniz!</strong> Yumurta hücresi 24 saat canlı kalır. Hamilelik şansını artırmak için bugünleri değerlendirebilirsiniz.' 
-              : 'Yumurtlama gününüze yaklaştıkça doğurganlık şansınız otomatik olarak yükselecektir. Folik asit ve sağlıklı beslenmeye devam edin.'}
+              ? '<strong>🌟 ZİRVE DOĞURGANLIK PENCERESİNDESİNİZ!</strong> Yumurta hücresi 24 saat canlı kalır. En yüksek gebe kalma şansı için bugünleri değerlendirebilirsiniz.' 
+              : 'Yumurtlama gününüze yaklaştıkça doğurganlık ihtimaliniz kademeli olarak yükselecektir. Folik asit ve dengeli beslenmeye devam edin.'}
           </div>
           
-          <!-- Hızlı Kayıt Butonları -->
-          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-            <button type="button" class="btn btn-sm ${hasIntimacy ? 'btn-primary' : 'btn-secondary'}" id="btn-quick-log-intimacy" style="flex: 1; min-height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; ${hasIntimacy ? 'background: linear-gradient(135deg, #e6a03c, #c27d14); color: #fff;' : ''}">
+          <!-- Hızlı Bebek Odaklı Araçlar Izgarası -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
+            <button type="button" class="btn btn-sm ${hasIntimacy ? 'btn-primary' : 'btn-secondary'}" id="btn-quick-log-intimacy" style="min-height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; ${hasIntimacy ? 'background: linear-gradient(135deg, #e6a03c, #c27d14); color: #fff;' : ''}">
               <span>❤️</span>
-              <span>${hasIntimacy ? 'Bugün Denendi ✓' : 'Birliktelik Ekle'}</span>
+              <span>${hasIntimacy ? 'Birliktelik ✓' : 'Birliktelik Ekle'}</span>
             </button>
 
-            <button type="button" class="btn btn-sm ${tempVal ? 'btn-primary' : 'btn-secondary'}" id="btn-quick-temp-log" style="flex: 1; min-height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600;">
-              <span>🌡️</span>
-              <span>${tempVal ? tempVal + '°C ✓' : 'Ateş Gir'}</span>
+            <button type="button" class="btn btn-sm ${dischargeVal ? 'btn-primary' : 'btn-secondary'}" id="btn-quick-mucus-log" style="min-height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600;">
+              <span>🥚</span>
+              <span>${dischargeVal ? dischargeLabels[dischargeVal] || 'Akıntı ✓' : 'Servikal Akıntı'}</span>
             </button>
 
-            <button type="button" class="btn btn-sm btn-secondary" id="btn-quick-fertility-guide" style="flex: 1; min-height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; background: rgba(230, 160, 60, 0.12); color: #b87314; border-color: rgba(230, 160, 60, 0.3);">
-              <span>📚</span>
-              <span>Bilimsel İpuçları</span>
+            <button type="button" class="btn btn-sm ${tempVal ? 'btn-primary' : 'btn-secondary'}" id="btn-quick-bbt-chart" style="min-height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600;">
+              <span>📈</span>
+              <span>${tempVal ? tempVal + '°C Grafik' : 'BBT Isı Grafiği'}</span>
             </button>
 
-            <button type="button" class="btn btn-sm btn-secondary" id="btn-quick-pregnancy-tools" style="width: 100%; min-height: 38px; margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; background: rgba(91, 154, 111, 0.1); color: var(--accent-fertile); border-color: rgba(91, 154, 111, 0.3);">
-              <span>🌱</span>
-              <span>Haftalık Bebek Gelişimi & Hamilelik Araçları 👣⏱️</span>
+            <button type="button" class="btn btn-sm ${lhVal === 'positive' ? 'btn-primary' : 'btn-secondary'}" id="btn-quick-lh-scanner" style="min-height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; ${lhVal === 'positive' ? 'background: linear-gradient(135deg, #8E44AD, #6C3483); color: #fff;' : ''}">
+              <span>🟣</span>
+              <span>${lhVal === 'positive' ? 'LH Zirve ⭐' : 'LH Test Tara'}</span>
+            </button>
+
+            <button type="button" class="btn btn-sm ${folicTaken ? 'btn-primary' : 'btn-secondary'}" id="btn-quick-folic-acid" style="min-height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; ${folicTaken ? 'background: rgba(91, 154, 111, 0.2); color: var(--accent-fertile); border-color: rgba(91, 154, 111, 0.4);' : ''}">
+              <span>💊</span>
+              <span>${folicTaken ? 'Folik Asit Alındı ✓' : 'Folik Asit Al'}</span>
+            </button>
+
+            <button type="button" class="btn btn-sm btn-secondary" id="btn-quick-2ww-hub" style="min-height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; background: rgba(212, 85, 107, 0.1); color: var(--accent-period); border-color: rgba(212, 85, 107, 0.3);">
+              <span>⏳</span>
+              <span>"Hamile Miyim?" (2WW)</span>
             </button>
           </div>
 
-          <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 8px; text-align: center;">
-            📅 Kayıtlarınız <strong>Takvim</strong> ve <strong>Günlük</strong> sekmenizde doğurganlık geçmişi olarak saklanır.
+          <!-- Doğurganlık Beslenmesi Rehberi -->
+          <button type="button" class="btn btn-sm btn-secondary" id="btn-quick-fertility-nutrition" style="width: 100%; min-height: 36px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; background: rgba(230, 160, 60, 0.12); color: #b87314; border-color: rgba(230, 160, 60, 0.3);">
+            <span>🥑</span>
+            <span>Şans Artırıcı Besinler & Yaşam Tarzı Rehberi 🥗✨</span>
+          </button>
+
+          <!-- 🎉 "HAMİLEYİM!" KUTLAMA VE MOD GEÇİŞ BUTONU -->
+          <div style="background: linear-gradient(135deg, rgba(230, 160, 60, 0.2), rgba(212, 85, 107, 0.15)); border: 2px dashed #e6a03c; border-radius: var(--radius-xl); padding: 10px; margin-top: 6px; text-align: center;">
+            <div style="font-size: 0.76rem; font-weight: 700; color: #b87314; margin-bottom: 4px;">🎉 TESTİNİZ POZİTİF Mİ ÇIKTI?</div>
+            <button type="button" class="btn btn-primary btn-block" id="btn-im-pregnant-milestone" style="padding: 10px; font-size: 0.95rem; font-weight: 800; background: linear-gradient(135deg, #e6a03c, #D4556B); border: none; box-shadow: 0 4px 15px rgba(230, 160, 60, 0.4);">
+              💖 Hamileyim! (Kutlamayı Başlat 🎉)
+            </button>
           </div>
         `;
 
-        // Hamilelik ve Bebek Araçları Modalı
-        modeCard.querySelector('#btn-quick-pregnancy-tools')?.addEventListener('click', () => {
-          if (App.Pregnancy && App.Pregnancy.showPregnancyHubModal) {
-            App.Pregnancy.showPregnancyHubModal();
+        // 1. Servikal Akıntı Modalı
+        modeCard.querySelector('#btn-quick-mucus-log')?.addEventListener('click', () => {
+          if (App.Pregnancy && App.Pregnancy.showCervicalMucusModal) {
+            App.Pregnancy.showCervicalMucusModal();
           }
         });
 
-        // Bilimsel Gebe Kalma & Doğum Aralığı Modalı
-        modeCard.querySelector('#btn-quick-fertility-guide')?.addEventListener('click', () => {
-          showScientificFertilityModal();
+        // 2. BBT Grafiği Modalı
+        modeCard.querySelector('#btn-quick-bbt-chart')?.addEventListener('click', () => {
+          if (App.Pregnancy && App.Pregnancy.showBBTChartModal) {
+            App.Pregnancy.showBBTChartModal();
+          }
+        });
+
+        // 3. LH Test Tarayıcı Modalı
+        modeCard.querySelector('#btn-quick-lh-scanner')?.addEventListener('click', () => {
+          if (App.Pregnancy && App.Pregnancy.showLHOvulationScannerModal) {
+            App.Pregnancy.showLHOvulationScannerModal();
+          }
+        });
+
+        // 4. Folik Asit / Vitamin Hızlı Toggle
+        modeCard.querySelector('#btn-quick-folic-acid')?.addEventListener('click', () => {
+          const sym = App.Data.getSymptoms(todayStr) || {};
+          sym.folicAcid = !sym.folicAcid;
+          App.Data.saveSymptoms(todayStr, sym);
+          App.Utils.vibrate([40]);
+          renderDashboard();
+          App.Utils.showToast(sym.folicAcid ? 'Folik asit / vitamin alındı olarak kaydedildi 💊' : 'Takviye kaydı güncellendi', 'success');
+        });
+
+        // 5. "Hamile Miyim?" (2WW) Modalı
+        modeCard.querySelector('#btn-quick-2ww-hub')?.addEventListener('click', () => {
+          if (App.Pregnancy && App.Pregnancy.showTwoWeekWaitModal) {
+            App.Pregnancy.showTwoWeekWaitModal(cycleInfo);
+          }
+        });
+
+        // 6. Beslenme Rehberi Modalı
+        modeCard.querySelector('#btn-quick-fertility-nutrition')?.addEventListener('click', () => {
+          if (App.Pregnancy && App.Pregnancy.showNutritionGuideModal) {
+            App.Pregnancy.showNutritionGuideModal();
+          }
+        });
+
+        // 7. 🎉 "HAMİLEYİM!" KUTLAMA BUTONU
+        modeCard.querySelector('#btn-im-pregnant-milestone')?.addEventListener('click', () => {
+          if (App.Pregnancy && App.Pregnancy.triggerImPregnantCelebration) {
+            App.Pregnancy.triggerImPregnantCelebration();
+          }
         });
 
         // Birliktelik Toggle (Aç/Kapat)

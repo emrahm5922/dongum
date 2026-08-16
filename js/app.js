@@ -695,18 +695,20 @@ window.App.Main = (() => {
         const daysLeft = cycleInfo.daysUntilPeriod != null ? cycleInfo.daysUntilPeriod : cycleInfo.daysUntilOvulation;
         setText('cycle-day-number', daysLeft != null ? `${daysLeft} Gün ⏳` : `${dayNumber}`);
         setText('cycle-day-label', 'Adete Kalan');
-        setText('cycle-day-toggle-hint', `👆 ${dayNumber}. Döngü Gününe geç (Dokun)`);
+        setText('cycle-day-toggle-hint', `(Döngü gününe geçmek için dokun 🌸)`);
       } else {
         setText('cycle-day-number', `${dayNumber}. Gün 🌸`);
         setText('cycle-day-label', 'Döngü Aşaması');
-        const daysLeft = cycleInfo.daysUntilPeriod != null ? cycleInfo.daysUntilPeriod : '--';
-        setText('cycle-day-toggle-hint', `👆 Kalan güne geç (${daysLeft} Gün Kaldı)`);
+        setText('cycle-day-toggle-hint', `(Kalan güne geçmek için dokun ⏳)`);
       }
     }
 
     // Çember Ortasına Tıklandığında İkisi Arasında Geçiş Yapma (Toggle Click Handler)
     const handleRingToggle = (e) => {
-      if (e && e.target && e.target.closest('#btn-center-period-toggle')) return;
+      if (e) {
+        if (e.target && e.target.closest('#btn-center-period-toggle')) return;
+        e.stopPropagation();
+      }
 
       const currentMode = localStorage.getItem('dongum_center_mode') || 'countdown';
       const newMode = (currentMode === 'countdown') ? 'cycle_day' : 'countdown';
@@ -716,32 +718,12 @@ window.App.Main = (() => {
         App.Utils.vibrate([40]);
       }
 
-      if (App.Utils && App.Utils.showToast) {
-        App.Utils.showToast(
-          newMode === 'countdown' ? 'Görünüm: Adete Kalan Gün ⏳' : 'Görünüm: Döngü Günü 🌸',
-          'info',
-          2000
-        );
-      }
-
       renderDashboard();
     };
 
     const ringCenter = document.getElementById('cycle-ring-center');
     if (ringCenter) {
       ringCenter.onclick = handleRingToggle;
-    }
-    const dayNumberEl = document.getElementById('cycle-day-number');
-    if (dayNumberEl) {
-      dayNumberEl.onclick = handleRingToggle;
-    }
-    const dayLabelEl = document.getElementById('cycle-day-label');
-    if (dayLabelEl) {
-      dayLabelEl.onclick = handleRingToggle;
-    }
-    const toggleHintEl = document.getElementById('cycle-day-toggle-hint');
-    if (toggleHintEl) {
-      toggleHintEl.onclick = handleRingToggle;
     }
     
     // Faz adı

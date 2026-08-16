@@ -545,6 +545,58 @@ window.App.Main = (() => {
       dateRibbon.textContent = `${trDays[now.getDay()]} ${now.getDate()} ${trMonths[now.getMonth()]} ${now.getFullYear()}`;
     }
 
+    // 0.05 Döngü Kıyaslama ve Kalan Gün Şeridi
+    const compRibbon = document.getElementById('dashboard-comparison-ribbon');
+    if (compRibbon && cycleInfo) {
+      let periods = App.Data.getPeriods ? App.Data.getPeriods() : [];
+      periods = periods.slice().sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+
+      let diffBadge = '';
+      let diffText = '';
+
+      if (periods.length >= 2) {
+        const curDur = periods[0].days ? periods[0].days.length : 5;
+        const prevDur = periods[1].days ? periods[1].days.length : 5;
+        const diff = curDur - prevDur;
+
+        if (diff === 0) {
+          diffBadge = `<span style="background: rgba(91, 154, 111, 0.15); color: var(--accent-fertile); padding: 2px 8px; border-radius: var(--radius-full); font-size: 0.72rem; font-weight: 700;">🟢 Eşit Süre</span>`;
+          diffText = `Son adetiniz geçen ayla aynı sürede (${curDur} gün) tamamlandı.`;
+        } else if (diff > 0) {
+          diffBadge = `<span style="background: rgba(230, 160, 60, 0.15); color: #b87314; padding: 2px 8px; border-radius: var(--radius-full); font-size: 0.72rem; font-weight: 700;">📈 +${diff} Gün Daha Uzun</span>`;
+          diffText = `Son adetiniz önceki aya göre <strong>${diff} gün daha uzun</strong> sürdü (${curDur} gün vs ${prevDur} gün).`;
+        } else {
+          diffBadge = `<span style="background: rgba(91, 154, 111, 0.15); color: var(--accent-fertile); padding: 2px 8px; border-radius: var(--radius-full); font-size: 0.72rem; font-weight: 700;">📉 ${Math.abs(diff)} Gün Daha Kısa</span>`;
+          diffText = `Son adetiniz önceki aya göre <strong>${Math.abs(diff)} gün daha kısa</strong> tamamlandı (${curDur} gün vs ${prevDur} gün).`;
+        }
+      }
+
+      const todayStr = App.Utils ? App.Utils.toISODateString(new Date()) : '';
+      const isPeriodToday = App.Cycle.classifyDate(todayStr).isPeriod;
+
+      let countdownTitle = '';
+      if (cycleInfo.isLate) {
+        countdownTitle = `⚠️ Adetiniz <strong>${cycleInfo.daysLate} Gün Gecikti</strong>`;
+      } else if (isPeriodToday) {
+        countdownTitle = `🩸 <strong>Regl Dönemindesiniz</strong> (Bugün Kanama Günü)`;
+      } else if (cycleInfo.daysUntilPeriod != null) {
+        countdownTitle = `⏳ Sonraki Regle <strong>${cycleInfo.daysUntilPeriod} Gün Kaldı</strong>`;
+      }
+
+      if (countdownTitle || diffText) {
+        compRibbon.style.display = 'flex';
+        compRibbon.innerHTML = `
+          <div class="dashboard-comparison-header">
+            <span>${countdownTitle || '🌸 Döngü Durumu'}</span>
+            ${diffBadge}
+          </div>
+          ${diffText ? `<div class="dashboard-comparison-desc">💡 ${diffText}</div>` : ''}
+        `;
+      } else {
+        compRibbon.style.display = 'none';
+      }
+    }
+
     // 0.1 Merkezdeki Periyot Başlat/Bitir Butonu
     const centerBtn = document.getElementById('btn-center-period-toggle');
     const todayStr = App.Utils.toISODateString(new Date());

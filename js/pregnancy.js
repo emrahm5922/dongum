@@ -600,14 +600,13 @@ window.App.Pregnancy = {
           </div>
         </div>
 
-        <button type="button" class="btn btn-primary btn-block btn-lg" id="btn-start-pregnancy-journey" style="padding: 12px; font-size: 1rem; font-weight: 700; background: linear-gradient(135deg, #e6a03c, #c27d14); border: none;">
+        <button type="button" class="btn btn-primary btn-block btn-lg" id="btn-start-pregnancy-journey" style="padding: 12px; font-size: 1rem; font-weight: 700; background: linear-gradient(135deg, #e6a03c, #c27d14); border: none; cursor: pointer;">
           🌱 Hafta Hafta Bebek Gelişimini Başlat ✨
         </button>
       </div>
     `;
 
     modalBody.querySelector('#btn-start-pregnancy-journey')?.addEventListener('click', () => {
-      if (window.App.hideModal) window.App.hideModal();
       this.showPregnancyHubModal();
     });
 

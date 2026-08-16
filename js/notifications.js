@@ -411,6 +411,125 @@ window.App.Notifications = {
     }
   },
 
+  /**
+   * Bildirim Merkezi Modalını Açar (Sağ üst zil ikonuna tıklandığında çalışır)
+   */
+  openNotificationCenterModal() {
+    const isTr = (App.I18n && App.I18n.getLang() === 'tr');
+    const settings = (App.Data && App.Data.get('settings')) || {};
+    const cycleInfo = (App.Cycle && App.Cycle.getCycleInfo) ? App.Cycle.getCycleInfo() : {};
+
+    const isPermGranted = (this.permissionState === 'granted' || (typeof Notification !== 'undefined' && Notification.permission === 'granted'));
+
+    const contentHtml = `
+      <div style="display: flex; flex-direction: column; gap: 14px; padding: 4px 0;">
+        <!-- İzin Durum Kartı -->
+        <div style="background: ${isPermGranted ? 'rgba(91, 154, 111, 0.1)' : 'rgba(230, 160, 60, 0.12)'}; border: 1px solid ${isPermGranted ? 'rgba(91, 154, 111, 0.3)' : 'rgba(230, 160, 60, 0.3)'}; border-radius: var(--radius-lg); padding: 12px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.4rem;">${isPermGranted ? '🔔' : '🔕'}</span>
+            <div>
+              <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-primary);">
+                ${isPermGranted ? 'Bildirimler Aktif' : 'Bildirim İzni Kapalı'}
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                ${isPermGranted ? 'Telefonunuza zamanında bildirim iletilecek' : 'Önemli günleri kaçırmamak için izin verin'}
+              </div>
+            </div>
+          </div>
+          ${!isPermGranted ? `
+            <button type="button" class="btn btn-sm btn-primary" id="btn-modal-req-perm" style="padding: 5px 12px; font-size: 0.76rem; font-weight: 700;">
+              İzin Ver
+            </button>
+          ` : '<span style="font-size: 0.78rem; font-weight: 700; color: var(--accent-fertile);">✓ Açık</span>'}
+        </div>
+
+        <!-- Akıllı Hatırlatıcılar Listesi -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">
+            🎯 Aktif Hatırlatıcılar & Durumlar
+          </div>
+
+          <div class="setting-item-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 1.1rem;">🌸</span>
+              <div>
+                <div style="font-weight: 700; font-size: 0.84rem;">Adete 2 Gün & 1 Gün Kala Uyarısı</div>
+                <div style="font-size: 0.74rem; color: var(--text-secondary);">Geçmiş döngü analizli akıllı hatırlatma</div>
+              </div>
+            </div>
+            <span style="font-size: 0.78rem; font-weight: 700; color: var(--accent-period);">${cycleInfo.daysUntilPeriod != null ? `${cycleInfo.daysUntilPeriod} Gün Kaldı` : 'Aktif'}</span>
+          </div>
+
+          <div class="setting-item-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 1.1rem;">⚠️</span>
+              <div>
+                <div style="font-weight: 700; font-size: 0.84rem;">Adet Uzaması & Gecikme Bildirimi</div>
+                <div style="font-size: 0.74rem; color: var(--text-secondary);">Normal süreden uzun sürerse veya gecikirse uyarır</div>
+              </div>
+            </div>
+            <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent-fertile);">✓ Devrede</span>
+          </div>
+
+          <div class="setting-item-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 1.1rem;">🌟</span>
+              <div>
+                <div style="font-weight: 700; font-size: 0.84rem;">Yumurtlama & Doğurganlık Zirvesi</div>
+                <div style="font-size: 0.74rem; color: var(--text-secondary);">En verimli ve yüksek hamilelik şansı günleri</div>
+              </div>
+            </div>
+            <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent-fertile);">✓ Devrede</span>
+          </div>
+
+          <div class="setting-item-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 1.1rem;">💡</span>
+              <div>
+                <div style="font-weight: 700; font-size: 0.84rem;">Günlük Sağlık & Sancı Tavsiyeleri</div>
+                <div style="font-size: 0.74rem; color: var(--text-secondary);">Kişisel modunuza özel bilimsel ipuçları</div>
+              </div>
+            </div>
+            <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent-fertile);">✓ Devrede</span>
+          </div>
+        </div>
+
+        <!-- Butonlar -->
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+          <button type="button" class="btn btn-primary" id="btn-modal-test-notif" style="width: 100%; min-height: 42px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span>🔔</span>
+            <span>Telefona / Cihaza Test Bildirimi Gönder</span>
+          </button>
+          <button type="button" class="btn btn-secondary" id="btn-modal-goto-notif-settings" style="width: 100%; min-height: 38px; font-size: 0.82rem; font-weight: 600;">
+            ⚙️ Bildirim Saatlerini & Tercihlerini Düzenle
+          </button>
+        </div>
+      </div>
+    `;
+
+    if (window.App.showModal) {
+      window.App.showModal('🔔 Bildirim & Hatırlatıcı Merkezi', contentHtml);
+    }
+
+    setTimeout(() => {
+      document.getElementById('btn-modal-req-perm')?.addEventListener('click', async () => {
+        await this.requestPermission();
+        this.openNotificationCenterModal();
+      });
+
+      document.getElementById('btn-modal-test-notif')?.addEventListener('click', () => {
+        this.sendTestNotification();
+      });
+
+      document.getElementById('btn-modal-goto-notif-settings')?.addEventListener('click', () => {
+        if (window.App.hideModal) window.App.hideModal();
+        if (window.App.Main && window.App.Main.navigateTo) {
+          window.App.Main.navigateTo('settings');
+        }
+      });
+    }, 50);
+  },
+
   scheduleAll() {
     this.checkAndNotify();
   },

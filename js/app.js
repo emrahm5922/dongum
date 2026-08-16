@@ -402,6 +402,13 @@ window.App.Main = (() => {
         navigateTo(previousScreen);
       }
     });
+
+    // Sağ üst zil / çan (Bildirim Merkezi) butonu
+    addClick('header-notification', () => {
+      if (App.Notifications && App.Notifications.openNotificationCenterModal) {
+        App.Notifications.openNotificationCenterModal();
+      }
+    });
   }
 
   function navigateTo(screenName) {

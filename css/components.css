@@ -3390,7 +3390,60 @@ input:checked + .toggle-slider:before {
   margin-bottom: 3px;
 }
 
+/* ==========================================================================
+   Desktop Mobile Phone Frame / Simulator Mode
+   ========================================================================== */
+@media (min-width: 600px) {
+  body {
+    background: radial-gradient(circle at center top, #2C283E 0%, #151322 100%) !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-height: 100vh !important;
+    padding: 24px 0 !important;
+    overflow-y: auto !important;
+  }
 
+  .app-container,
+  .onboarding-wizard {
+    width: 100% !important;
+    max-width: 412px !important;
+    height: 860px !important;
+    max-height: calc(100vh - 48px) !important;
+    border-radius: 46px !important;
+    box-shadow: 
+      0 0 0 10px #1E1B2E,
+      0 0 0 12px rgba(255, 255, 255, 0.18),
+      0 30px 90px rgba(0, 0, 0, 0.65) !important;
+    overflow: hidden !important;
+    position: relative !important;
+    background: var(--bg-primary) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  }
 
+  .app-header {
+    border-top-left-radius: 46px;
+    border-top-right-radius: 46px;
+    padding-top: 18px !important;
+  }
 
+  .bottom-nav {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    border-bottom-left-radius: 46px !important;
+    border-bottom-right-radius: 46px !important;
+  }
 
+  .screen-container {
+    height: calc(100% - 130px) !important;
+    overflow-y: auto !important;
+  }
+
+  .modal-backdrop {
+    position: absolute !important;
+    border-radius: 46px !important;
+  }
+}

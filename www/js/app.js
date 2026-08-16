@@ -660,31 +660,76 @@ window.App.Main = (() => {
       phasesGroup.innerHTML = beadsHtml;
     }
 
+    // 2. Döngü Çemberi Metinleri (Geri Sayım vs Döngü Günü Geçişi)
+    const centerMode = localStorage.getItem('dongum_center_mode') || 'countdown';
+
     if (userGoal === 'ttc') {
-      // Bebek Planlama Modunda Çember
       if (cycleInfo.daysUntilOvulation === 0) {
         setText('cycle-day-number', 'ZİRVE');
         setText('cycle-day-label', 'Yumurtlama Günü');
       } else if (cycleInfo.isFertileWindow) {
         setText('cycle-day-number', 'YÜKSEK');
         setText('cycle-day-label', 'Doğurganlık Penceresi');
+      } else if (centerMode === 'countdown') {
+        const daysLeft = cycleInfo.daysUntilPeriod != null ? cycleInfo.daysUntilPeriod : cycleInfo.daysUntilOvulation;
+        setText('cycle-day-number', daysLeft != null ? daysLeft.toString() : `${dayNumber}`);
+        setText('cycle-day-label', 'Adete Kalan Gün ⏳');
       } else {
-        setText('cycle-day-number', (cycleInfo.daysUntilOvulation != null && cycleInfo.daysUntilOvulation > 0) ? `${cycleInfo.daysUntilOvulation}` : `${dayNumber}`);
-        setText('cycle-day-label', (cycleInfo.daysUntilOvulation != null && cycleInfo.daysUntilOvulation > 0) ? 'Yumurtlamaya Kalan Gün' : `Döngü Günü ${dayNumber}`);
+        setText('cycle-day-number', dayNumber.toString());
+        setText('cycle-day-label', `${dayNumber}. Döngü Günü 🌸`);
       }
     } else if (userGoal === 'prevent') {
-      // Korunma Modunda Çember
       if (cycleInfo.isFertileWindow) {
         setText('cycle-day-number', 'RİSK');
         setText('cycle-day-label', '⚠️ Yüksek Hamilelik Riski');
+      } else if (centerMode === 'countdown') {
+        setText('cycle-day-number', cycleInfo.daysUntilPeriod != null ? cycleInfo.daysUntilPeriod.toString() : `${dayNumber}`);
+        setText('cycle-day-label', 'Adete Kalan Gün ⏳');
       } else {
-        setText('cycle-day-number', 'GÜVENLİ');
-        setText('cycle-day-label', '🛡️ Düşük Doğurganlık Dönemi');
+        setText('cycle-day-number', dayNumber.toString());
+        setText('cycle-day-label', `${dayNumber}. Döngü Günü 🌸`);
       }
     } else {
-      // Standart Sancı ve Sağlık Modunda Çember
-      setText('cycle-day-number', dayNumber.toString());
-      setText('cycle-day-label', 'Döngü Günü');
+      // Standart Mod: Geri Sayım (Adete Kalan Gün) vs Döngü Günü
+      if (cycleInfo.isLate) {
+        setText('cycle-day-number', `+${cycleInfo.daysLate}`);
+        setText('cycle-day-label', 'Adet Gecikti ⚠️');
+      } else if (isTodayPeriod) {
+        setText('cycle-day-number', dayNumber.toString());
+        setText('cycle-day-label', 'Regl Günü 🩸');
+      } else if (centerMode === 'countdown') {
+        setText('cycle-day-number', cycleInfo.daysUntilPeriod != null ? cycleInfo.daysUntilPeriod.toString() : `${dayNumber}`);
+        setText('cycle-day-label', 'Adete Kalan Gün ⏳');
+      } else {
+        setText('cycle-day-number', dayNumber.toString());
+        setText('cycle-day-label', `${dayNumber}. Döngü Günü 🌸`);
+      }
+    }
+
+    // Çember Ortasına Tıklandığında İkisi Arasında Geçiş Yapma (Toggle Click Handler)
+    const ringCenter = document.getElementById('cycle-ring-center');
+    if (ringCenter) {
+      ringCenter.onclick = (e) => {
+        if (e.target.closest('#btn-center-period-toggle')) return;
+
+        const currentMode = localStorage.getItem('dongum_center_mode') || 'countdown';
+        const newMode = (currentMode === 'countdown') ? 'cycle_day' : 'countdown';
+        localStorage.setItem('dongum_center_mode', newMode);
+
+        if (App.Utils && App.Utils.vibrate) {
+          App.Utils.vibrate([35]);
+        }
+
+        if (App.Utils && App.Utils.showToast) {
+          App.Utils.showToast(
+            newMode === 'countdown' ? 'Görünüm: Adete Kalan Gün ⏳' : 'Görünüm: Döngü Günü 🌸',
+            'info',
+            2000
+          );
+        }
+
+        renderDashboard();
+      };
     }
     
     // Faz adı

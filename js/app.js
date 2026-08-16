@@ -984,51 +984,8 @@ window.App.Main = (() => {
       }
     }
 
-    // 4. Standart Bilgi Kartları
-    if (cycleInfo.isLate) {
-      setText('info-next-period-value', `+${cycleInfo.daysLate}`);
-      setText('info-next-period-label', t('dashboard.periodLate', { days: cycleInfo.daysLate }));
-      const card = document.getElementById('info-card-next-period');
-      if (card) card.classList.add('late');
-    } else {
-      setText('info-next-period-value', cycleInfo.daysUntilPeriod != null ? cycleInfo.daysUntilPeriod.toString() : '--');
-      setText('info-next-period-label', t('dashboard.nextPeriod'));
-      const card = document.getElementById('info-card-next-period');
-      if (card) card.classList.remove('late');
-    }
-
-    // Doğurganlık durumu
-    if (cycleInfo.fertility) {
-      const fertilityLabels = {
-        low: t('dashboard.fertilityLow'),
-        medium: t('dashboard.fertilityMedium'),
-        high: t('dashboard.fertilityHigh'),
-        peak: t('dashboard.fertilityPeak')
-      };
-      setText('info-fertility-value', fertilityLabels[cycleInfo.fertility.level] || '--');
-      setText('info-fertility-label', t('dashboard.fertility'));
-    }
-
-    // Yumurtlama
-    if (cycleInfo.ovulationDay) {
-      const ovDate = App.Utils.parseDate(cycleInfo.ovulationDay);
-      const today = new Date();
-      const daysToOv = App.Utils.diffDays(ovDate, today);
-      if (daysToOv === 0) {
-        setText('info-ovulation-value', t('dashboard.today'));
-      } else if (daysToOv > 0) {
-        setText('info-ovulation-value', daysToOv.toString());
-      } else {
-        setText('info-ovulation-value', t('dashboard.passed'));
-      }
-      setText('info-ovulation-label', t('dashboard.ovulation'));
-    }
-
-    // Gebelik olasılığı
-    if (cycleInfo.pregnancyProbability != null) {
-      setText('info-pregnancy-value', `${cycleInfo.pregnancyProbability}%`);
-      setText('info-pregnancy-label', t('dashboard.pregnancyProb'));
-    }
+    // 4. Moda Özel 4'lü Hızlı Bilgi Kartları (Mode-Specific Quick Info Cards)
+    renderQuickInfoCards(cycleInfo, userGoal);
 
     // Faz açıklama kartı
     renderPhaseCard(cycleInfo);
@@ -1041,6 +998,146 @@ window.App.Main = (() => {
 
     // İlaç widget'ı
     renderMedicationWidget();
+  }
+
+  function renderQuickInfoCards(cycleInfo, userGoal) {
+    const grid = document.getElementById('quick-info-grid');
+    if (!grid) return;
+
+    const todayStr = App.Utils ? App.Utils.toISODateString(new Date()) : '';
+    const todaySymptoms = (App.Data && App.Data.getSymptoms) ? (App.Data.getSymptoms(todayStr) || {}) : {};
+
+    // Gün farkları
+    let daysToOv = null;
+    if (cycleInfo.ovulationDay) {
+      const ovDate = App.Utils.parseDate(cycleInfo.ovulationDay);
+      daysToOv = App.Utils.diffDays(ovDate, new Date());
+    }
+
+    const phaseNames = {
+      menstrual: 'Regl',
+      follicular: 'Foliküler',
+      ovulation: 'Yumurtlama',
+      luteal: 'Luteal (PMS)'
+    };
+    const currentPhaseName = cycleInfo.phase ? (phaseNames[cycleInfo.phase.phase] || 'Döngü') : 'Döngü';
+
+    let cardsHtml = '';
+
+    if (userGoal === 'ttc') {
+      // 👶 MOD 2: GEBE KALMA & BEBEK PLANLAMA MODU KARTLARI
+      const ovText = (daysToOv === 0) ? 'Bugün' : (daysToOv > 0) ? `${daysToOv} Gün` : 'Geçti';
+      const prob = cycleInfo.pregnancyProbability || 5;
+      const tempText = todaySymptoms.temperature ? `${todaySymptoms.temperature}°C` : '--';
+      const intimacyText = todaySymptoms.intimacy ? 'Yapıldı ✓' : 'Yok';
+
+      cardsHtml = `
+        <div class="info-card" id="info-card-ovulation">
+          <div class="info-card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-ovulation)" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" fill="var(--accent-ovulation)" opacity="0.3"/></svg>
+          </div>
+          <span class="info-card-value mono">${ovText}</span>
+          <span class="info-card-label">Yumurtlama</span>
+        </div>
+        <div class="info-card" id="info-card-pregnancy">
+          <div class="info-card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-period)" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          </div>
+          <span class="info-card-value mono">%${prob}</span>
+          <span class="info-card-label">Gebe Kalma Şansı</span>
+        </div>
+        <div class="info-card" id="info-card-temp">
+          <div class="info-card-icon">
+            <span style="font-size: 1.1rem;">🌡️</span>
+          </div>
+          <span class="info-card-value mono">${tempText}</span>
+          <span class="info-card-label">Bazal Isı (BBT)</span>
+        </div>
+        <div class="info-card" id="info-card-intimacy">
+          <div class="info-card-icon">
+            <span style="font-size: 1.1rem;">❤️</span>
+          </div>
+          <span class="info-card-value" style="font-size: 0.95rem; font-weight: 700; color: ${todaySymptoms.intimacy ? 'var(--accent-period)' : 'var(--text-secondary)'};">${intimacyText}</span>
+          <span class="info-card-label">Birliktelik</span>
+        </div>
+      `;
+    } else if (userGoal === 'prevent') {
+      // 🛡️ MOD 3: DOĞURGANLIK & KORUNMA MODU KARTLARI
+      const isHighRisk = cycleInfo.isFertileWindow;
+      const pillText = todaySymptoms.birthControlTaken ? 'Alındı ✓' : 'Alınmadı';
+      const periodLeft = cycleInfo.daysUntilPeriod != null ? `${cycleInfo.daysUntilPeriod} Gün` : '--';
+      const riskDaysText = isHighRisk ? 'YÜKSEK' : 'Düşük Risk';
+
+      cardsHtml = `
+        <div class="info-card" id="info-card-protection" style="${isHighRisk ? 'background: rgba(230, 92, 0, 0.08); border-color: rgba(230, 92, 0, 0.3);' : ''}">
+          <div class="info-card-icon">
+            <span style="font-size: 1.1rem;">${isHighRisk ? '⚠️' : '🛡️'}</span>
+          </div>
+          <span class="info-card-value" style="font-size: 0.95rem; font-weight: 800; color: ${isHighRisk ? '#e65c00' : 'var(--accent-fertile)'};">${riskDaysText}</span>
+          <span class="info-card-label">Hamilelik Riski</span>
+        </div>
+        <div class="info-card" id="info-card-pill">
+          <div class="info-card-icon">
+            <span style="font-size: 1.1rem;">💊</span>
+          </div>
+          <span class="info-card-value" style="font-size: 0.95rem; font-weight: 700; color: ${todaySymptoms.birthControlTaken ? 'var(--accent-fertile)' : '#e6a03c'};">${pillText}</span>
+          <span class="info-card-label">Doğum Kontrolü</span>
+        </div>
+        <div class="info-card" id="info-card-next-period">
+          <div class="info-card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-period)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <span class="info-card-value mono">${periodLeft}</span>
+          <span class="info-card-label">Sonraki Regl</span>
+        </div>
+        <div class="info-card" id="info-card-safe-window">
+          <div class="info-card-icon">
+            <span style="font-size: 1.1rem;">🗓️</span>
+          </div>
+          <span class="info-card-value" style="font-size: 0.95rem; font-weight: 700; color: var(--accent-phase);">${currentPhaseName}</span>
+          <span class="info-card-label">Döngü Dönemi</span>
+        </div>
+      `;
+    } else {
+      // 🌸 MOD 1: SANCI & GENEL SAĞLIK MODU KARTLARI
+      const periodVal = cycleInfo.isLate ? `+${cycleInfo.daysLate} Gün` : (cycleInfo.daysUntilPeriod != null ? `${cycleInfo.daysUntilPeriod} Gün` : '--');
+      const painLevels = { none: 'Ağrı Yok 😊', mild: 'Hafif 🌱', moderate: 'Orta ⚡', severe: 'Şiddetli 🔥' };
+      const painText = painLevels[todaySymptoms.painLevel] || 'Ağrı Yok 😊';
+      const waterMl = todaySymptoms.water ? `${todaySymptoms.water * 250} ml` : '0 ml';
+
+      cardsHtml = `
+        <div class="info-card" id="info-card-next-period">
+          <div class="info-card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-period)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <span class="info-card-value mono">${periodVal}</span>
+          <span class="info-card-label">${cycleInfo.isLate ? 'Gecikti' : 'Sonraki Regl'}</span>
+        </div>
+        <div class="info-card" id="info-card-pain">
+          <div class="info-card-icon">
+            <span style="font-size: 1.1rem;">⚡</span>
+          </div>
+          <span class="info-card-value" style="font-size: 0.88rem; font-weight: 700; color: var(--accent-period);">${painText}</span>
+          <span class="info-card-label">Bugünkü Sancı</span>
+        </div>
+        <div class="info-card" id="info-card-water">
+          <div class="info-card-icon">
+            <span style="font-size: 1.1rem;">💧</span>
+          </div>
+          <span class="info-card-value mono">${waterMl}</span>
+          <span class="info-card-label">Su Tüketimi</span>
+        </div>
+        <div class="info-card" id="info-card-phase">
+          <div class="info-card-icon">
+            <span style="font-size: 1.1rem;">🌿</span>
+          </div>
+          <span class="info-card-value" style="font-size: 0.88rem; font-weight: 700; color: var(--accent-phase);">${currentPhaseName}</span>
+          <span class="info-card-label">Döngü Fazı</span>
+        </div>
+      `;
+    }
+
+    grid.innerHTML = cardsHtml;
   }
 
   function renderPhaseCard(cycleInfo) {

@@ -84,13 +84,32 @@ window.App.Notifications = {
     const todayStr = App.Utils.toISODateString(new Date());
     const sentHistory = this._getHistory();
 
-    // 1. İki Gün Kala Uyarısı
+    // Önceki Ay Kıyaslama Bilgisi (Geçen ay erken/geç başlama veya uzama durumu)
+    let prevMonthInsight = '';
+    if (App.Data && App.Data.getPeriods) {
+      let periods = App.Data.getPeriods() || [];
+      periods = periods.slice().sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+      if (periods.length >= 2) {
+        const curDur = periods[0].days ? periods[0].days.length : 5;
+        const prevDur = periods[1].days ? periods[1].days.length : 5;
+        const diff = curDur - prevDur;
+        
+        if (diff > 0) {
+          prevMonthInsight = ` (Geçen ay adetiniz ${diff} gün daha uzun sürmüştü).`;
+        } else if (diff < 0) {
+          prevMonthInsight = ` (Geçen ay adetiniz ${Math.abs(diff)} gün daha kısa sürmüştü).`;
+        }
+      }
+    }
+
+    // 1. İki Gün Kala Uyarısı (Akıllı Kıyaslamalı)
     if (notifSettings.periodReminder !== false && cycleInfo.daysUntilPeriod === 2) {
       const tag = `period_2_days_${todayStr}`;
       if (!sentHistory[tag]) {
+        const bodyText = `2 gün sonra adet olmanız bekleniyor.${prevMonthInsight} Ped veya rahat kıyafetlerinizi hazırlamayı unutmayın 🩸🌸`;
         this.sendNotification(
-          App.I18n.t('app.name') || 'Döngüm',
-          App.I18n.t('notify.periodApproaching2'),
+          '🌸 Döngüm - Adet Yaklaşıyor',
+          bodyText,
           tag,
           { action: 'dashboard' }
         );
@@ -102,11 +121,12 @@ window.App.Notifications = {
     if (notifSettings.periodReminder !== false && cycleInfo.daysUntilPeriod === 1) {
       const tag = `period_1_day_${todayStr}`;
       if (!sentHistory[tag]) {
+        const bodyText = `Yarın adetinizin başlaması bekleniyor.${prevMonthInsight} Başladığında takvimden işaretleyebilirsiniz 🩸`;
         this.sendNotification(
-          App.I18n.t('app.name') || 'Döngüm',
-          App.I18n.t('notify.periodApproaching1'),
+          '🩸 Döngüm - Yarın Adet Günü',
+          bodyText,
           tag,
-          { action: 'symptoms' }
+          { action: 'dashboard' }
         );
         this._recordHistory(tag, todayStr);
       }

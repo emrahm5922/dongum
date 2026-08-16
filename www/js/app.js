@@ -891,6 +891,10 @@ window.App.Main = (() => {
           sticky: 'Kuru 🏜️'
         };
 
+        const pregSummary = (App.Pregnancy && App.Pregnancy.getDashboardSummaryData) 
+          ? App.Pregnancy.getDashboardSummaryData() 
+          : { week: 12, weekInfo: { fruit: 'Misket Limonu', emoji: '🍋', size: '5.4 cm', weight: '14 gr' }, curSize: '5.4 cm', curWeight: '14 gr', kicks: 0, lastContraction: null, totalContractions: 0 };
+
         modeCard.innerHTML = `
           <!-- 1. Dinamik Doğurganlık Isı Haritası -->
           ${heatmapHtml}
@@ -936,19 +940,87 @@ window.App.Main = (() => {
           </div>
 
           <!-- Doğurganlık Beslenmesi Rehberi -->
-          <button type="button" class="btn btn-sm btn-secondary" id="btn-quick-fertility-nutrition" style="width: 100%; min-height: 36px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; background: rgba(230, 160, 60, 0.12); color: #b87314; border-color: rgba(230, 160, 60, 0.3);">
+          <button type="button" class="btn btn-sm btn-secondary" id="btn-quick-fertility-nutrition" style="width: 100%; min-height: 36px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; background: rgba(230, 160, 60, 0.12); color: #b87314; border-color: rgba(230, 160, 60, 0.3);">
             <span>🥑</span>
             <span>Şans Artırıcı Besinler & Yaşam Tarzı Rehberi 🥗✨</span>
           </button>
 
+          <!-- 👶 GÜNLÜK BEBEK & HAMİLELİK TAKİP ÖZETİ KARTI -->
+          <div style="background: var(--surface); border: 1.5px solid #e6a03c; border-radius: var(--radius-xl); padding: 12px; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 0.85rem; font-weight: 800; color: #b87314; display: flex; align-items: center; gap: 6px;">
+                <span>👶</span> <span>Bebek & Hamilelik Günlük Özeti</span>
+              </span>
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-open-full-baby-hub" style="font-size: 0.72rem; color: #b87314; font-weight: 700; padding: 2px 6px;">
+                Tümünü Aç ↗
+              </button>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem;">
+              <!-- Hafta & Boy/Kilo -->
+              <div id="btn-dash-goto-growth" style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-secondary); padding: 8px 10px; border-radius: var(--radius-md); cursor: pointer;">
+                <span style="display: flex; align-items: center; gap: 6px;">
+                  <span>${pregSummary.weekInfo.emoji || '🌱'}</span>
+                  <strong>${pregSummary.week}. Hafta (${pregSummary.weekInfo.fruit})</strong>
+                </span>
+                <span style="font-size: 0.76rem; color: var(--text-secondary);">📏 ${pregSummary.curSize} | ⚖️ ${pregSummary.curWeight}</span>
+              </div>
+
+              <!-- Tekme Sayısı -->
+              <div id="btn-dash-goto-kicks" style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-secondary); padding: 8px 10px; border-radius: var(--radius-md); cursor: pointer;">
+                <span style="display: flex; align-items: center; gap: 6px;">
+                  <span>👣</span>
+                  <span>Bugünkü Tekme:</span>
+                </span>
+                <strong style="color: #b87314;">${pregSummary.kicks} / 10 Tekme ${pregSummary.kicks >= 10 ? '✓' : ''}</strong>
+              </div>
+
+              <!-- Son Sancı -->
+              <div id="btn-dash-goto-contractions" style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-secondary); padding: 8px 10px; border-radius: var(--radius-md); cursor: pointer;">
+                <span style="display: flex; align-items: center; gap: 6px;">
+                  <span>⏱️</span>
+                  <span>Son Kasılma/Sancı:</span>
+                </span>
+                <strong style="color: ${pregSummary.lastContraction ? 'var(--accent-period)' : 'var(--text-secondary)'};">
+                  ${pregSummary.lastContraction ? `${pregSummary.lastContraction.duration} sn (${pregSummary.lastContraction.time})` : 'Kayıt yok'}
+                </strong>
+              </div>
+            </div>
+          </div>
+
           <!-- 🎉 "HAMİLEYİM!" KUTLAMA VE MOD GEÇİŞ BUTONU -->
           <div style="background: linear-gradient(135deg, rgba(230, 160, 60, 0.2), rgba(212, 85, 107, 0.15)); border: 2px dashed #e6a03c; border-radius: var(--radius-xl); padding: 10px; margin-top: 6px; text-align: center;">
             <div style="font-size: 0.76rem; font-weight: 700; color: #b87314; margin-bottom: 4px;">🎉 TESTİNİZ POZİTİF Mİ ÇIKTI?</div>
-            <button type="button" class="btn btn-primary btn-block" id="btn-im-pregnant-milestone" style="padding: 10px; font-size: 0.95rem; font-weight: 800; background: linear-gradient(135deg, #e6a03c, #D4556B); border: none; box-shadow: 0 4px 15px rgba(230, 160, 60, 0.4);">
+            <button type="button" class="btn btn-primary btn-block" id="btn-im-pregnant-milestone" style="padding: 10px; font-size: 0.95rem; font-weight: 800; background: linear-gradient(135deg, #e6a03c, #D4556B); border: none; box-shadow: 0 4px 15px rgba(230, 160, 60, 0.4); cursor: pointer;">
               💖 Hamileyim! (Kutlamayı Başlat 🎉)
             </button>
           </div>
         `;
+
+        // Dashboard Bebek Özeti Tıklama Olayları
+        modeCard.querySelector('#btn-open-full-baby-hub')?.addEventListener('click', () => {
+          if (App.Pregnancy && App.Pregnancy.showPregnancyHubModal) {
+            App.Pregnancy.showPregnancyHubModal('growth');
+          }
+        });
+
+        modeCard.querySelector('#btn-dash-goto-growth')?.addEventListener('click', () => {
+          if (App.Pregnancy && App.Pregnancy.showPregnancyHubModal) {
+            App.Pregnancy.showPregnancyHubModal('growth');
+          }
+        });
+
+        modeCard.querySelector('#btn-dash-goto-kicks')?.addEventListener('click', () => {
+          if (App.Pregnancy && App.Pregnancy.showPregnancyHubModal) {
+            App.Pregnancy.showPregnancyHubModal('kick');
+          }
+        });
+
+        modeCard.querySelector('#btn-dash-goto-contractions')?.addEventListener('click', () => {
+          if (App.Pregnancy && App.Pregnancy.showPregnancyHubModal) {
+            App.Pregnancy.showPregnancyHubModal('contraction');
+          }
+        });
 
         // 1. Servikal Akıntı Modalı
         modeCard.querySelector('#btn-quick-mucus-log')?.addEventListener('click', () => {

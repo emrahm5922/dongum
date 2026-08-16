@@ -678,14 +678,43 @@ window.App.Pregnancy = {
   },
 
   /**
+   * Ana Ekran İçin Günlük Hamilelik & Bebek Takip Özeti Verilerini Döndürür
+   */
+  getDashboardSummaryData() {
+    const todayStr = App.Utils.toISODateString(new Date());
+    const week = parseInt(localStorage.getItem('pregnancy_current_week') || '12', 10);
+    const weekInfo = this.getWeekData(week);
+    const custom = JSON.parse(localStorage.getItem(`pregnancy_custom_${week}`) || '{}');
+    const curSize = custom.size || weekInfo.size;
+    const curWeight = custom.weight || weekInfo.weight;
+
+    const savedKicks = parseInt(localStorage.getItem(`pregnancy_kicks_${todayStr}`) || '0', 10);
+    const contractions = JSON.parse(localStorage.getItem('pregnancy_contractions') || '[]');
+    const lastContraction = contractions.length > 0 ? contractions[0] : null;
+
+    return {
+      week,
+      weekInfo,
+      curSize,
+      curWeight,
+      kicks: savedKicks,
+      lastContraction,
+      totalContractions: contractions.length
+    };
+  },
+
+  /**
    * Hamilelik & Bebek Araçları Ana Modalı
    */
-  showPregnancyHubModal() {
+  showPregnancyHubModal(initialTab = 'growth') {
     const modalBody = document.getElementById('modal-body');
     if (!modalBody) return;
 
+    const todayStr = App.Utils.toISODateString(new Date());
     const savedWeek = parseInt(localStorage.getItem('pregnancy_current_week') || '12', 10);
     this.currentWeek = savedWeek;
+    this.kickCount = parseInt(localStorage.getItem(`pregnancy_kicks_${todayStr}`) || '0', 10);
+    this.contractions = JSON.parse(localStorage.getItem('pregnancy_contractions') || '[]');
 
     const renderCardBody = (week) => {
       const weekInfo = this.getWeekData(week);
@@ -719,24 +748,36 @@ window.App.Pregnancy = {
       `;
     };
 
+    const renderContractionList = () => {
+      if (this.contractions.length === 0) {
+        return '<div style="color: var(--text-secondary); text-align: center; font-style: italic; padding: 10px 0;">Henüz kaydedilmiş kasılma yok.</div>';
+      }
+      return this.contractions.slice(0, 5).map((c, i) => `
+        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.82rem;">
+          <span>#${this.contractions.length - i} Saat: <strong>${c.time}</strong></span>
+          <span style="color: var(--accent-period); font-weight: 700;">${c.duration} sn sürdü</span>
+        </div>
+      `).join('');
+    };
+
     modalBody.innerHTML = `
       <div style="display: flex; flex-direction: column; gap: 12px; max-height: 75vh; overflow-y: auto; padding-right: 4px;">
         
         <!-- Sekme Butonları -->
         <div style="display: flex; gap: 6px; background: var(--bg-secondary); padding: 4px; border-radius: var(--radius-lg); border: 1px solid var(--border);">
-          <button type="button" class="preg-tab-btn active" data-tab="growth" style="flex: 1; padding: 8px 4px; font-size: 0.82rem; font-weight: 800; border-radius: var(--radius-md); border: none; cursor: pointer; background: #e6a03c; color: #fff; box-shadow: 0 2px 6px rgba(230, 160, 60, 0.4); transition: all 0.2s;">
+          <button type="button" class="preg-tab-btn ${initialTab === 'growth' ? 'active' : ''}" data-tab="growth" style="flex: 1; padding: 8px 4px; font-size: 0.82rem; font-weight: ${initialTab === 'growth' ? '800' : '700'}; border-radius: var(--radius-md); border: none; cursor: pointer; background: ${initialTab === 'growth' ? '#e6a03c' : 'transparent'}; color: ${initialTab === 'growth' ? '#fff' : 'var(--text-secondary)'}; box-shadow: ${initialTab === 'growth' ? '0 2px 6px rgba(230, 160, 60, 0.4)' : 'none'}; transition: all 0.2s;">
             🌱 Bebek Gelişimi
           </button>
-          <button type="button" class="preg-tab-btn" data-tab="kick" style="flex: 1; padding: 8px 4px; font-size: 0.82rem; font-weight: 700; border-radius: var(--radius-md); border: none; cursor: pointer; background: transparent; color: var(--text-secondary); transition: all 0.2s;">
+          <button type="button" class="preg-tab-btn ${initialTab === 'kick' ? 'active' : ''}" data-tab="kick" style="flex: 1; padding: 8px 4px; font-size: 0.82rem; font-weight: ${initialTab === 'kick' ? '800' : '700'}; border-radius: var(--radius-md); border: none; cursor: pointer; background: ${initialTab === 'kick' ? '#e6a03c' : 'transparent'}; color: ${initialTab === 'kick' ? '#fff' : 'var(--text-secondary)'}; box-shadow: ${initialTab === 'kick' ? '0 2px 6px rgba(230, 160, 60, 0.4)' : 'none'}; transition: all 0.2s;">
             👣 Tekme Sayacı
           </button>
-          <button type="button" class="preg-tab-btn" data-tab="contraction" style="flex: 1; padding: 8px 4px; font-size: 0.82rem; font-weight: 700; border-radius: var(--radius-md); border: none; cursor: pointer; background: transparent; color: var(--text-secondary); transition: all 0.2s;">
+          <button type="button" class="preg-tab-btn ${initialTab === 'contraction' ? 'active' : ''}" data-tab="contraction" style="flex: 1; padding: 8px 4px; font-size: 0.82rem; font-weight: ${initialTab === 'contraction' ? '800' : '700'}; border-radius: var(--radius-md); border: none; cursor: pointer; background: ${initialTab === 'contraction' ? '#e6a03c' : 'transparent'}; color: ${initialTab === 'contraction' ? '#fff' : 'var(--text-secondary)'}; box-shadow: ${initialTab === 'contraction' ? '0 2px 6px rgba(230, 160, 60, 0.4)' : 'none'}; transition: all 0.2s;">
             ⏱️ Sancı Sayacı
           </button>
         </div>
 
         <!-- 1. BEBEK GELİŞİMİ SEKMESİ -->
-        <div id="preg-tab-growth" class="preg-tab-content" style="display: block;">
+        <div id="preg-tab-growth" class="preg-tab-content" style="display: ${initialTab === 'growth' ? 'block' : 'none'};">
           <div style="text-align: center; margin-bottom: 10px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
               <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary);">GEBELİK HAFTANIZ</span>
@@ -751,7 +792,7 @@ window.App.Pregnancy = {
         </div>
 
         <!-- 2. FETAL TEKME SAYACI SEKMESİ -->
-        <div id="preg-tab-kick" class="preg-tab-content" style="display: none; text-align: center;">
+        <div id="preg-tab-kick" class="preg-tab-content" style="display: ${initialTab === 'kick' ? 'block' : 'none'}; text-align: center;">
           <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.4;">
             🏥 <strong>ACOG Kılavuzu:</strong> 28. haftadan sonra günde 1 kez bebeğin hareketlerini sayın. 2 saat içinde 10 hareket sağlıklı kabul edilir.
           </p>
@@ -764,14 +805,19 @@ window.App.Pregnancy = {
               👣 Tekme Hissettim (+1)
             </button>
 
-            <button type="button" class="btn btn-ghost btn-sm" id="btn-reset-kicks" style="margin-top: 8px; font-size: 0.78rem; cursor: pointer;">
-              🔄 Sayacı Sıfırla
-            </button>
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-save-kicks-now" style="flex: 1; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
+                💾 Kaydet & Güncelle
+              </button>
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-reset-kicks" style="font-size: 0.78rem; cursor: pointer;">
+                🔄 Sıfırla
+              </button>
+            </div>
           </div>
         </div>
 
         <!-- 3. DOĞUM KASILMA ZAMANLAYICISI SEKMESİ -->
-        <div id="preg-tab-contraction" class="preg-tab-content" style="display: none;">
+        <div id="preg-tab-contraction" class="preg-tab-content" style="display: ${initialTab === 'contraction' ? 'block' : 'none'};">
           <div style="background: var(--bg-secondary); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-md); font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.4;">
             🏥 <strong>5-1-1 Kuralı:</strong> Kasılmalarınız 5 dakikada bir geliyor, 1 dakika sürüyor ve 1 saattir bu düzende devam ediyorsa doktorunuzu arama zamanı gelmiştir!
           </div>
@@ -785,8 +831,15 @@ window.App.Pregnancy = {
             </button>
           </div>
 
-          <div id="contraction-history-list" style="max-height: 120px; overflow-y: auto; font-size: 0.8rem; border-top: 1px dashed var(--border); padding-top: 8px;">
-            <div style="color: var(--text-secondary); text-align: center; font-style: italic;">Henüz kaydedilmiş kasılma yok.</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary);">Son Kasılma Kayıtları:</span>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-contractions" style="font-size: 0.7rem; color: var(--text-secondary); padding: 2px 6px;">
+              🗑️ Temizle
+            </button>
+          </div>
+
+          <div id="contraction-history-list" style="max-height: 130px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 6px 10px; background: var(--surface);">
+            ${renderContractionList()}
           </div>
         </div>
 
@@ -849,7 +902,8 @@ window.App.Pregnancy = {
           localStorage.setItem(`pregnancy_custom_${week}`, JSON.stringify(custom));
           cardContent.innerHTML = renderCardBody(week);
           bindEditBadges();
-          App.Utils.showToast('Boy ölçümü kaydedildi 📏', 'success');
+          if (window.App.Main && window.App.Main.renderDashboard) window.App.Main.renderDashboard();
+          App.Utils.showToast('Boy ölçümü başarıyla kaydedildi 📏', 'success');
         }
       });
 
@@ -865,7 +919,8 @@ window.App.Pregnancy = {
           localStorage.setItem(`pregnancy_custom_${week}`, JSON.stringify(custom));
           cardContent.innerHTML = renderCardBody(week);
           bindEditBadges();
-          App.Utils.showToast('Kilo ölçümü kaydedildi ⚖️', 'success');
+          if (window.App.Main && window.App.Main.renderDashboard) window.App.Main.renderDashboard();
+          App.Utils.showToast('Kilo ölçümü başarıyla kaydedildi ⚖️', 'success');
         }
       });
     };
@@ -877,6 +932,7 @@ window.App.Pregnancy = {
       weekDisplay.textContent = `${w}. Hafta`;
       cardContent.innerHTML = renderCardBody(w);
       bindEditBadges();
+      if (window.App.Main && window.App.Main.renderDashboard) window.App.Main.renderDashboard();
     });
 
     bindEditBadges();
@@ -886,16 +942,37 @@ window.App.Pregnancy = {
     modalBody.querySelector('#btn-add-kick')?.addEventListener('click', () => {
       this.kickCount++;
       kickDisplay.textContent = this.kickCount;
+      localStorage.setItem(`pregnancy_kicks_${todayStr}`, this.kickCount.toString());
+      
+      const sym = App.Data.getSymptoms(todayStr) || {};
+      sym.kickCount = this.kickCount;
+      App.Data.saveSymptoms(todayStr, sym);
+      
       App.Utils.vibrate([40]);
       if (this.kickCount === 10) {
-        App.Utils.showToast('🎉 Tebrikler! 10 tekme hedefine ulaşıldı.', 'success', 3000);
+        App.Utils.showToast('🎉 Tebrikler! 10 tekme hedefine ulaşıldı ve kaydedildi.', 'success', 3000);
       }
+      if (window.App.Main && window.App.Main.renderDashboard) window.App.Main.renderDashboard();
+    });
+
+    modalBody.querySelector('#btn-save-kicks-now')?.addEventListener('click', () => {
+      localStorage.setItem(`pregnancy_kicks_${todayStr}`, this.kickCount.toString());
+      const sym = App.Data.getSymptoms(todayStr) || {};
+      sym.kickCount = this.kickCount;
+      App.Data.saveSymptoms(todayStr, sym);
+      if (window.App.Main && window.App.Main.renderDashboard) window.App.Main.renderDashboard();
+      App.Utils.showToast('Tekme sayısı ana ekrana kaydedildi 👣✓', 'success');
     });
 
     modalBody.querySelector('#btn-reset-kicks')?.addEventListener('click', () => {
       this.kickCount = 0;
       kickDisplay.textContent = '0';
+      localStorage.setItem(`pregnancy_kicks_${todayStr}`, '0');
+      const sym = App.Data.getSymptoms(todayStr) || {};
+      sym.kickCount = 0;
+      App.Data.saveSymptoms(todayStr, sym);
       App.Utils.vibrate([20]);
+      if (window.App.Main && window.App.Main.renderDashboard) window.App.Main.renderDashboard();
     });
 
     // 4. SANCI SAYACI OLAYLARI
@@ -930,13 +1007,27 @@ window.App.Pregnancy = {
         statusLabel.textContent = `Son sancı süresi: ${timerSeconds} saniye`;
         App.Utils.vibrate([40, 40]);
 
-        this.contractions.unshift({ time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), duration: timerSeconds });
-        historyList.innerHTML = this.contractions.slice(0, 5).map((c, i) => `
-          <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border);">
-            <span>#${this.contractions.length - i} Saat: ${c.time}</span>
-            <strong>${c.duration} sn sürdü</strong>
-          </div>
-        `).join('');
+        const newRecord = {
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          date: todayStr,
+          duration: timerSeconds
+        };
+
+        this.contractions.unshift(newRecord);
+        localStorage.setItem('pregnancy_contractions', JSON.stringify(this.contractions));
+        historyList.innerHTML = renderContractionList();
+        if (window.App.Main && window.App.Main.renderDashboard) window.App.Main.renderDashboard();
+        App.Utils.showToast(`Sancı süresi (${timerSeconds} sn) kaydedildi ⏱️`, 'success');
+      }
+    });
+
+    modalBody.querySelector('#btn-clear-contractions')?.addEventListener('click', () => {
+      if (confirm('Kasılma geçmişini temizlemek istiyor musunuz?')) {
+        this.contractions = [];
+        localStorage.setItem('pregnancy_contractions', JSON.stringify([]));
+        historyList.innerHTML = renderContractionList();
+        if (window.App.Main && window.App.Main.renderDashboard) window.App.Main.renderDashboard();
+        App.Utils.showToast('Kasılma geçmişi temizlendi', 'info');
       }
     });
 
@@ -950,5 +1041,6 @@ window.App.Pregnancy = {
     if (window.App.showModal) window.App.showModal('👶 Hafta Hafta Hamilelik & Bebek Takibi');
   }
 };
+
 
 

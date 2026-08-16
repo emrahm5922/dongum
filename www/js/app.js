@@ -582,12 +582,39 @@ window.App.Main = (() => {
       const isPeriodToday = App.Cycle.classifyDate(todayStr).isPeriod;
 
       let countdownTitle = '';
-      if (cycleInfo.isLate) {
-        countdownTitle = `⚠️ Adetiniz <strong>${cycleInfo.daysLate} Gün Gecikti</strong>`;
-      } else if (isPeriodToday) {
-        countdownTitle = `🩸 <strong>Regl Dönemindesiniz</strong> (Bugün Kanama Günü)`;
-      } else if (cycleInfo.daysUntilPeriod != null) {
-        countdownTitle = `⏳ Sonraki Regle <strong>${cycleInfo.daysUntilPeriod} Gün Kaldı</strong>`;
+      if (userGoal === 'ttc') {
+        // 👶 BEBEK PLANLAMA MODU: Yumurtlama & Doğurganlık Odaklı Sayaç
+        let daysToOv = null;
+        if (cycleInfo.ovulationDay) {
+          const ovDate = App.Utils.parseDate(cycleInfo.ovulationDay);
+          daysToOv = App.Utils.diffDays(ovDate, new Date());
+        }
+
+        if (daysToOv === 0) {
+          countdownTitle = `🌟 <strong>Bugün Zirve Yumurtlama Günü</strong> (%95 En Yüksek Şans)`;
+        } else if (cycleInfo.isFertileWindow) {
+          countdownTitle = `🌸 <strong>Doğurganlık Penceresindesiniz</strong> (%70-85 Yüksek İhtimal)`;
+        } else if (daysToOv != null && daysToOv > 0) {
+          countdownTitle = `🌟 Zirve Yumurtlamaya <strong>${daysToOv} Gün Kaldı</strong>`;
+        } else {
+          countdownTitle = `🌱 <strong>Yumurtlama Tamamlandı</strong> (Yerleşme & Döllenme Evresi)`;
+        }
+      } else if (userGoal === 'prevent') {
+        // 🛡️ KORUNMA MODU: Risk & Koruma Odaklı Sayaç
+        if (cycleInfo.isFertileWindow) {
+          countdownTitle = `⚠️ <strong>Yüksek Hamilelik Riski</strong> (Korunmasız İlişkiden Kaçının)`;
+        } else {
+          countdownTitle = `🛡️ <strong>Güvenli Dönemdesiniz</strong> (Düşük Hamilelik Riski)`;
+        }
+      } else {
+        // 🌸 SANCI & GENEL SAĞLIK MODU: Regl Geri Sayımı
+        if (cycleInfo.isLate) {
+          countdownTitle = `⚠️ Adetiniz <strong>${cycleInfo.daysLate} Gün Gecikti</strong>`;
+        } else if (isPeriodToday) {
+          countdownTitle = `🩸 <strong>Regl Dönemindesiniz</strong> (Bugün Kanama Günü)`;
+        } else if (cycleInfo.daysUntilPeriod != null) {
+          countdownTitle = `⏳ Sonraki Regle <strong>${cycleInfo.daysUntilPeriod} Gün Kaldı</strong>`;
+        }
       }
 
       if (countdownTitle || diffText) {
@@ -671,33 +698,51 @@ window.App.Main = (() => {
     const centerMode = localStorage.getItem('dongum_center_mode') || 'countdown';
 
     if (userGoal === 'ttc') {
-      if (cycleInfo.daysUntilOvulation === 0) {
-        setText('cycle-day-number', 'ZİRVE');
+      let daysToOv = null;
+      if (cycleInfo.ovulationDay) {
+        const ovDate = App.Utils.parseDate(cycleInfo.ovulationDay);
+        daysToOv = App.Utils.diffDays(ovDate, new Date());
+      }
+
+      if (daysToOv === 0) {
+        setText('cycle-day-number', 'ZİRVE 🌟');
         setText('cycle-day-label', 'Yumurtlama Günü');
+        setText('cycle-day-toggle-hint', `(En Yüksek Doğurganlık %95)`);
       } else if (cycleInfo.isFertileWindow) {
-        setText('cycle-day-number', 'YÜKSEK');
+        setText('cycle-day-number', 'YÜKSEK 🌸');
         setText('cycle-day-label', 'Doğurganlık Penceresi');
+        setText('cycle-day-toggle-hint', `(Gebe Kalma Şansı %70-85)`);
       } else if (centerMode === 'countdown') {
-        const daysLeft = cycleInfo.daysUntilPeriod != null ? cycleInfo.daysUntilPeriod : cycleInfo.daysUntilOvulation;
-        setText('cycle-day-number', daysLeft != null ? daysLeft.toString() : `${dayNumber}`);
-        setText('cycle-day-label', 'Adete Kalan Gün ⏳');
+        if (daysToOv != null && daysToOv > 0) {
+          setText('cycle-day-number', `${daysToOv} Gün 🌟`);
+          setText('cycle-day-label', 'Yumurtlamaya Kalan');
+          setText('cycle-day-toggle-hint', `(Döngü gününe geçmek için dokun 🌸)`);
+        } else {
+          setText('cycle-day-number', `${cycleInfo.daysUntilPeriod || dayNumber} Gün ⏳`);
+          setText('cycle-day-label', 'Sonraki Döngüye');
+          setText('cycle-day-toggle-hint', `(Döngü gününe geçmek için dokun 🌸)`);
+        }
       } else {
-        setText('cycle-day-number', dayNumber.toString());
-        setText('cycle-day-label', `${dayNumber}. Döngü Günü 🌸`);
+        setText('cycle-day-number', `${dayNumber}. Gün 🌸`);
+        setText('cycle-day-label', 'Döngü Aşaması');
+        setText('cycle-day-toggle-hint', `(Yumurtlama sayacına geçmek için dokun 🌟)`);
       }
     } else if (userGoal === 'prevent') {
       if (cycleInfo.isFertileWindow) {
-        setText('cycle-day-number', 'RİSK');
-        setText('cycle-day-label', '⚠️ Yüksek Hamilelik Riski');
+        setText('cycle-day-number', 'RİSK ⚠️');
+        setText('cycle-day-label', 'Yüksek Hamilelik Riski');
+        setText('cycle-day-toggle-hint', `(Korunmasız birliktelikten kaçının)`);
       } else if (centerMode === 'countdown') {
-        setText('cycle-day-number', cycleInfo.daysUntilPeriod != null ? cycleInfo.daysUntilPeriod.toString() : `${dayNumber}`);
-        setText('cycle-day-label', 'Adete Kalan Gün ⏳');
+        setText('cycle-day-number', 'GÜVENLİ 🛡️');
+        setText('cycle-day-label', 'Düşük Hamilelik Riski');
+        setText('cycle-day-toggle-hint', `(Döngü gününe geçmek için dokun 🌸)`);
       } else {
-        setText('cycle-day-number', dayNumber.toString());
-        setText('cycle-day-label', `${dayNumber}. Döngü Günü 🌸`);
+        setText('cycle-day-number', `${dayNumber}. Gün 🌸`);
+        setText('cycle-day-label', 'Döngü Aşaması');
+        setText('cycle-day-toggle-hint', `(Korunma durumuna geçmek için dokun 🛡️)`);
       }
     } else {
-      // Standart Mod: Geri Sayım (Adete Kalan Gün) vs Döngü Günü
+      // Standart Sancı & Sağlık Modu: Geri Sayım (Adete Kalan Gün) vs Döngü Günü
       if (centerMode === 'countdown') {
         const daysLeft = cycleInfo.daysUntilPeriod != null ? cycleInfo.daysUntilPeriod : cycleInfo.daysUntilOvulation;
         setText('cycle-day-number', daysLeft != null ? `${daysLeft} Gün ⏳` : `${dayNumber}`);

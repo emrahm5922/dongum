@@ -691,18 +691,14 @@ window.App.Main = (() => {
       }
     } else {
       // Standart Mod: Geri Sayım (Adete Kalan Gün) vs Döngü Günü
-      if (cycleInfo.isLate) {
-        setText('cycle-day-number', `+${cycleInfo.daysLate}`);
-        setText('cycle-day-label', 'Adet Gecikti ⚠️');
-      } else if (isTodayPeriod) {
-        setText('cycle-day-number', dayNumber.toString());
-        setText('cycle-day-label', 'Regl Günü 🩸');
-      } else if (centerMode === 'countdown') {
+      if (centerMode === 'countdown') {
         setText('cycle-day-number', cycleInfo.daysUntilPeriod != null ? cycleInfo.daysUntilPeriod.toString() : `${dayNumber}`);
         setText('cycle-day-label', 'Adete Kalan Gün ⏳');
+        setText('cycle-day-toggle-hint', '👆 Döngü gününü gör (Dokun)');
       } else {
         setText('cycle-day-number', dayNumber.toString());
         setText('cycle-day-label', `${dayNumber}. Döngü Günü 🌸`);
+        setText('cycle-day-toggle-hint', '👆 Kalan günü gör (Dokun)');
       }
     }
 

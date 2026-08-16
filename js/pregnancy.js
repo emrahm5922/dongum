@@ -21,20 +21,20 @@ window.App.Pregnancy = {
 
   // 1 - 40 Hafta Detaylı Gelişim Veritabanı
   weeksData: {
-    4: { fruit: 'Haşhaş Tohumu 🌾', size: '1 mm', weight: '< 1 gr', desc: 'Blastokist rahme tutundu. Plasenta ve amniyotik kese oluşmaya başlıyor.' },
-    6: { fruit: 'Mercimek Tanesi 🫘', size: '4-5 mm', weight: '< 1 gr', desc: 'Kalp tüpü atmaya başladı. Kol ve bacak tomurcukları beliriyor.' },
-    8: { fruit: 'Ahududu 🫐', size: '1.6 cm', weight: '1 gr', desc: 'Göz kapakları, burun ucu ve minik parmaklar şekilleniyor. Beden sürekli kıpırdıyor.' },
-    10: { fruit: 'Çilek 🍓', size: '3.1 cm', weight: '4 gr', desc: 'Embriyo evresi bitti, artık resmi olarak bir fetüs! Tüm hayati organlar yerli yerinde.' },
-    12: { fruit: 'Misket Limonu 🍋', size: '5.4 cm', weight: '14 gr', desc: 'Refleksler gelişti, parmaklarını açıp kapayabiliyor. 1. Trimester tamamlanıyor!' },
-    14: { fruit: 'Kivi 🥝', size: '8.7 cm', weight: '43 gr', desc: 'Bebek yüz ifadeleri yapabiliyor ve parmağını emmeye başlıyor. Cinsiyet organları belirginleşiyor.' },
-    16: { fruit: 'Avokado 🥑', size: '11.6 cm', weight: '100 gr', desc: 'Gözleri ışığı algılayabiliyor, kalp günde 25 litre kan pompalıyor.' },
-    18: { fruit: 'Dolmalık Biber 🫑', size: '14.2 cm', weight: '190 gr', desc: 'Kulakları sesleri duyuyor! Dış dünyadaki seslere ve müziğe tepki verebilir.' },
-    20: { fruit: 'Muz 🍌', size: '25.6 cm', weight: '300 gr', desc: 'Yarı yolu tamamladınız! İlk hafif tekmeleri (kelebek kıpırtısı) hissetmeye başlayabilirsiniz.' },
-    24: { fruit: 'Mısır Koçanı 🌽', size: '30 cm', weight: '600 gr', desc: 'Akciğerlerde sürfaktan üretimi başlıyor. Beyin dalgaları uyku ve uyanıklık ritmine girdi.' },
-    28: { fruit: 'Patlıcan 🍆', size: '37.6 cm', weight: '1.0 kg', desc: '3. Trimester başladı! Gözlerini açıp kapayabiliyor, rüya görmeye başlıyor.' },
-    32: { fruit: 'Hindistan Cevizi 🥥', size: '42.4 cm', weight: '1.7 kg', desc: 'Tırnakları ve saçları uzadı. Kemikleri sertleşiyor ama kafatası doğum için esnek kalıyor.' },
-    36: { fruit: 'Kavun 🍈', size: '47.4 cm', weight: '2.6 kg', desc: 'Doğum pozisyonunu alıyor (baş aşağı). Akciğerleri neredeyse tamamen olgunlaştı.' },
-    40: { fruit: 'Büyük Karpuz 🍉', size: '51.2 cm', weight: '3.4 kg', desc: 'Tebrikler, bebeğiniz dünyaya gelmeye tamamen hazır! Mucizenize kavuşma zamanı ✨' }
+    4: { emoji: '🌾', fruit: 'Haşhaş Tohumu', size: '1 mm', weight: '< 1 gr', desc: 'Blastokist rahme tutundu. Plasenta ve amniyotik kese oluşmaya başlıyor.' },
+    6: { emoji: '🫘', fruit: 'Mercimek Tanesi', size: '4-5 mm', weight: '< 1 gr', desc: 'Kalp tüpü atmaya başladı. Kol ve bacak tomurcukları beliriyor.' },
+    8: { emoji: '🫐', fruit: 'Ahududu', size: '1.6 cm', weight: '1 gr', desc: 'Göz kapakları, burun ucu ve minik parmaklar şekilleniyor. Beden sürekli kıpırdıyor.' },
+    10: { emoji: '🍓', fruit: 'Çilek', size: '3.1 cm', weight: '4 gr', desc: 'Embriyo evresi bitti, artık resmi olarak bir fetüs! Tüm hayati organlar yerli yerinde.' },
+    12: { emoji: '🍋', fruit: 'Misket Limonu', size: '5.4 cm', weight: '14 gr', desc: 'Refleksler gelişti, parmaklarını açıp kapayabiliyor. 1. Trimester tamamlanıyor!' },
+    14: { emoji: '🥝', fruit: 'Kivi', size: '8.7 cm', weight: '43 gr', desc: 'Bebek yüz ifadeleri yapabiliyor ve parmağını emmeye başlıyor. Cinsiyet organları belirginleşiyor.' },
+    16: { emoji: '🥑', fruit: 'Avokado', size: '11.6 cm', weight: '100 gr', desc: 'Gözleri ışığı algılayabiliyor, kalp günde 25 litre kan pompalıyor.' },
+    18: { emoji: '🫑', fruit: 'Dolmalık Biber', size: '14.2 cm', weight: '190 gr', desc: 'Kulakları sesleri duyuyor! Dış dünyadaki seslere ve müziğe tepki verebilir.' },
+    20: { emoji: '🍌', fruit: 'Muz', size: '25.6 cm', weight: '300 gr', desc: 'Yarı yolu tamamladınız! İlk hafif tekmeleri (kelebek kıpırtısı) hissetmeye başlayabilirsiniz.' },
+    24: { emoji: '🌽', fruit: 'Mısır Koçanı', size: '30 cm', weight: '600 gr', desc: 'Akciğerlerde sürfaktan üretimi başlıyor. Beyin dalgaları uyku ve uyanıklık ritmine girdi.' },
+    28: { emoji: '🍆', fruit: 'Patlıcan', size: '37.6 cm', weight: '1.0 kg', desc: '3. Trimester başladı! Gözlerini açıp kapayabiliyor, rüya görmeye başlıyor.' },
+    32: { emoji: '🥥', fruit: 'Hindistan Cevizi', size: '42.4 cm', weight: '1.7 kg', desc: 'Tırnakları ve saçları uzadı. Kemikleri sertleşiyor ama kafatası doğum için esnek kalıyor.' },
+    36: { emoji: '🍈', fruit: 'Kavun', size: '47.4 cm', weight: '2.6 kg', desc: 'Doğum pozisyonunu alıyor (baş aşağı). Akciğerleri neredeyse tamamen olgunlaştı.' },
+    40: { emoji: '🍉', fruit: 'Büyük Karpuz', size: '51.2 cm', weight: '3.4 kg', desc: 'Tebrikler, bebeğiniz dünyaya gelmeye tamamen hazır! Mucizenize kavuşma zamanı ✨' }
   },
 
   getWeekData(week) {
@@ -686,80 +686,101 @@ window.App.Pregnancy = {
 
     const savedWeek = parseInt(localStorage.getItem('pregnancy_current_week') || '12', 10);
     this.currentWeek = savedWeek;
-    const weekInfo = this.getWeekData(this.currentWeek);
+
+    const renderCardBody = (week) => {
+      const weekInfo = this.getWeekData(week);
+      const customMeasurements = JSON.parse(localStorage.getItem(`pregnancy_custom_${week}`) || '{}');
+      const curSize = customMeasurements.size || weekInfo.size;
+      const curWeight = customMeasurements.weight || weekInfo.weight;
+
+      return `
+        <div style="font-size: 3rem; margin-bottom: 2px; line-height: 1;">${weekInfo.emoji || '🌱'}</div>
+        <h3 style="font-size: 1.15rem; font-weight: 800; color: #b87314; margin: 4px 0 8px 0;">Bebeğiniz Bir ${weekInfo.fruit} Boyutunda!</h3>
+        
+        <!-- Düzenlenebilir Boy ve Kilo Rozetleri -->
+        <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+          <div class="preg-badge-btn" id="btn-edit-size" style="background: var(--surface); padding: 6px 12px; border-radius: var(--radius-full); border: 1.5px solid #e6a03c; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: all 0.2s;">
+            <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary);">📏 Boy: <strong style="color: #b87314;">${curSize}</strong></span>
+            <span style="font-size: 0.72rem; opacity: 0.7;">✏️</span>
+          </div>
+          <div class="preg-badge-btn" id="btn-edit-weight" style="background: var(--surface); padding: 6px 12px; border-radius: var(--radius-full); border: 1.5px solid #e6a03c; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: all 0.2s;">
+            <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary);">⚖️ Kilo: <strong style="color: #b87314;">${curWeight}</strong></span>
+            <span style="font-size: 0.72rem; opacity: 0.7;">✏️</span>
+          </div>
+        </div>
+
+        <div style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 8px;">
+          💡 Boy veya kiloya dokunarak doktorunuzun ultrason ölçümlerini girebilirsiniz.
+        </div>
+
+        <p style="font-size: 0.84rem; color: var(--text-primary); line-height: 1.45; text-align: left; background: var(--surface); padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--border); margin: 0;">
+          ${weekInfo.desc}
+        </p>
+      `;
+    };
 
     modalBody.innerHTML = `
-      <div style="display: flex; flex-direction: column; gap: 14px; max-height: 75vh; overflow-y: auto; padding-right: 4px;">
+      <div style="display: flex; flex-direction: column; gap: 12px; max-height: 75vh; overflow-y: auto; padding-right: 4px;">
         
-        <!-- Sekme Başlıkları -->
-        <div style="display: flex; gap: 6px; background: var(--bg-secondary); padding: 4px; border-radius: var(--radius-lg);">
-          <button type="button" class="btn btn-sm preg-tab-btn active" data-tab="growth" style="flex: 1; font-size: 0.8rem; font-weight: 700;">
+        <!-- Sekme Butonları -->
+        <div style="display: flex; gap: 6px; background: var(--bg-secondary); padding: 4px; border-radius: var(--radius-lg); border: 1px solid var(--border);">
+          <button type="button" class="preg-tab-btn active" data-tab="growth" style="flex: 1; padding: 8px 4px; font-size: 0.82rem; font-weight: 800; border-radius: var(--radius-md); border: none; cursor: pointer; background: #e6a03c; color: #fff; box-shadow: 0 2px 6px rgba(230, 160, 60, 0.4); transition: all 0.2s;">
             🌱 Bebek Gelişimi
           </button>
-          <button type="button" class="btn btn-sm preg-tab-btn" data-tab="kick" style="flex: 1; font-size: 0.8rem; font-weight: 700;">
+          <button type="button" class="preg-tab-btn" data-tab="kick" style="flex: 1; padding: 8px 4px; font-size: 0.82rem; font-weight: 700; border-radius: var(--radius-md); border: none; cursor: pointer; background: transparent; color: var(--text-secondary); transition: all 0.2s;">
             👣 Tekme Sayacı
           </button>
-          <button type="button" class="btn btn-sm preg-tab-btn" data-tab="contraction" style="flex: 1; font-size: 0.8rem; font-weight: 700;">
+          <button type="button" class="preg-tab-btn" data-tab="contraction" style="flex: 1; padding: 8px 4px; font-size: 0.82rem; font-weight: 700; border-radius: var(--radius-md); border: none; cursor: pointer; background: transparent; color: var(--text-secondary); transition: all 0.2s;">
             ⏱️ Sancı Sayacı
           </button>
         </div>
 
         <!-- 1. BEBEK GELİŞİMİ SEKMESİ -->
-        <div id="preg-tab-growth" class="preg-tab-content">
-          <div style="text-align: center; margin-bottom: 12px;">
+        <div id="preg-tab-growth" class="preg-tab-content" style="display: block;">
+          <div style="text-align: center; margin-bottom: 10px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
               <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary);">GEBELİK HAFTANIZ</span>
-              <span id="preg-week-display" style="font-size: 1.1rem; font-weight: 700; color: #b87314;">${this.currentWeek}. Hafta</span>
+              <span id="preg-week-display" style="font-size: 1.15rem; font-weight: 800; color: #b87314;">${this.currentWeek}. Hafta</span>
             </div>
             <input type="range" id="preg-week-slider" min="4" max="40" value="${this.currentWeek}" step="1" style="width: 100%; accent-color: #e6a03c; cursor: pointer;">
           </div>
 
-          <div id="preg-card-content" style="background: linear-gradient(135deg, rgba(230, 160, 60, 0.1), rgba(230, 160, 60, 0.02)); border: 1px solid rgba(230, 160, 60, 0.3); border-radius: var(--radius-xl); padding: 14px; text-align: center;">
-            <div style="font-size: 2.2rem; margin-bottom: 4px;">${weekInfo.fruit.split(' ')[1] || '🍋'}</div>
-            <h3 style="font-size: 1.1rem; font-weight: 700; color: #b87314; margin: 0 0 6px 0;">Bebeğiniz Bir ${weekInfo.fruit} Boyutunda!</h3>
-            
-            <div style="display: flex; justify-content: center; gap: 14px; margin-bottom: 10px; font-size: 0.85rem; font-weight: 600;">
-              <span style="background: var(--surface); padding: 4px 10px; border-radius: var(--radius-full); border: 1px solid var(--border);">📏 Boy: ${weekInfo.size}</span>
-              <span style="background: var(--surface); padding: 4px 10px; border-radius: var(--radius-full); border: 1px solid var(--border);">⚖️ Kilo: ${weekInfo.weight}</span>
-            </div>
-
-            <p style="font-size: 0.84rem; color: var(--text-primary); line-height: 1.45; text-align: left; background: var(--surface); padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--border); margin: 0;">
-              ${weekInfo.desc}
-            </p>
+          <div id="preg-card-content" style="background: linear-gradient(135deg, rgba(230, 160, 60, 0.12), rgba(230, 160, 60, 0.03)); border: 1px solid rgba(230, 160, 60, 0.35); border-radius: var(--radius-xl); padding: 14px; text-align: center;">
+            ${renderCardBody(this.currentWeek)}
           </div>
         </div>
 
         <!-- 2. FETAL TEKME SAYACI SEKMESİ -->
         <div id="preg-tab-kick" class="preg-tab-content" style="display: none; text-align: center;">
-          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px;">
-            ACOG Kılavuzu: 28. haftadan sonra günde 1 kez, bebeğin 10 hareketini sayın. 2 saat içinde 10 hareket sağlıklı kabul edilir.
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.4;">
+            🏥 <strong>ACOG Kılavuzu:</strong> 28. haftadan sonra günde 1 kez bebeğin hareketlerini sayın. 2 saat içinde 10 hareket sağlıklı kabul edilir.
           </p>
 
-          <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 16px; margin-bottom: 10px;">
-            <div id="kick-counter-display" style="font-size: 3rem; font-weight: 700; color: #b87314; line-height: 1;">0</div>
-            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-top: 4px;">/ 10 Tekme Hedefi</div>
+          <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 16px; margin-bottom: 10px; text-align: center;">
+            <div id="kick-counter-display" style="font-size: 3.5rem; font-weight: 800; color: #b87314; line-height: 1;">${this.kickCount}</div>
+            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); margin-top: 4px;">/ 10 Tekme Hedefi</div>
             
-            <button type="button" class="btn btn-primary btn-lg" id="btn-add-kick" style="margin-top: 12px; width: 100%; padding: 14px; font-size: 1.05rem; font-weight: 700; background: linear-gradient(135deg, #e6a03c, #c27d14); border: none;">
+            <button type="button" class="btn btn-primary btn-lg" id="btn-add-kick" style="margin-top: 12px; width: 100%; padding: 14px; font-size: 1.05rem; font-weight: 800; background: linear-gradient(135deg, #e6a03c, #c27d14); border: none; cursor: pointer; border-radius: var(--radius-lg);">
               👣 Tekme Hissettim (+1)
             </button>
 
-            <button type="button" class="btn btn-ghost btn-sm" id="btn-reset-kicks" style="margin-top: 8px; font-size: 0.75rem;">
-              🔄 Sıfırla
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-reset-kicks" style="margin-top: 8px; font-size: 0.78rem; cursor: pointer;">
+              🔄 Sayacı Sıfırla
             </button>
           </div>
         </div>
 
         <!-- 3. DOĞUM KASILMA ZAMANLAYICISI SEKMESİ -->
         <div id="preg-tab-contraction" class="preg-tab-content" style="display: none;">
-          <div style="background: var(--bg-secondary); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-md); font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.4;">
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border); padding: 8px 12px; border-radius: var(--radius-md); font-size: 0.76rem; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.4;">
             🏥 <strong>5-1-1 Kuralı:</strong> Kasılmalarınız 5 dakikada bir geliyor, 1 dakika sürüyor ve 1 saattir bu düzende devam ediyorsa doktorunuzu arama zamanı gelmiştir!
           </div>
 
           <div style="text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 16px; margin-bottom: 10px;">
-            <div id="contraction-timer-display" style="font-size: 2.2rem; font-weight: 700; font-family: monospace; color: var(--accent-period);">00:00</div>
-            <div id="contraction-status-label" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">Sancı bekleniyor</div>
+            <div id="contraction-timer-display" style="font-size: 2.4rem; font-weight: 800; font-family: monospace; color: var(--accent-period);">00:00</div>
+            <div id="contraction-status-label" style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 4px;">Sancı bekleniyor</div>
 
-            <button type="button" class="btn btn-primary btn-block" id="btn-toggle-contraction" style="margin-top: 12px; padding: 12px; font-weight: 700; font-size: 1rem; background: linear-gradient(135deg, var(--accent-period), #b8354c); border: none;">
+            <button type="button" class="btn btn-primary btn-block" id="btn-toggle-contraction" style="margin-top: 12px; padding: 12px; font-weight: 800; font-size: 1rem; background: linear-gradient(135deg, var(--accent-period), #b8354c); border: none; cursor: pointer; border-radius: var(--radius-lg);">
               ⚡ Sancı Başladı
             </button>
           </div>
@@ -770,51 +791,97 @@ window.App.Pregnancy = {
         </div>
 
         <!-- Kapat Butonu -->
-        <button type="button" class="btn btn-secondary btn-block" id="btn-close-preg-hub" style="margin-top: 4px; padding: 10px; font-weight: 700;">
+        <button type="button" class="btn btn-secondary btn-block" id="btn-close-preg-hub" style="margin-top: 4px; padding: 10px; font-weight: 700; cursor: pointer;">
           Kapat ✕
         </button>
       </div>
     `;
 
-    // Sekme Geçişleri
-    modalBody.querySelectorAll('.preg-tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        modalBody.querySelectorAll('.preg-tab-btn').forEach(b => b.classList.remove('active'));
-        modalBody.querySelectorAll('.preg-tab-content').forEach(c => c.style.display = 'none');
+    // 1. SEKME GEÇİŞLERİNİ BAĞLA
+    const tabButtons = modalBody.querySelectorAll('.preg-tab-btn');
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        tabButtons.forEach(b => {
+          b.classList.remove('active');
+          b.style.background = 'transparent';
+          b.style.color = 'var(--text-secondary)';
+          b.style.boxShadow = 'none';
+          b.style.fontWeight = '700';
+        });
+
+        modalBody.querySelectorAll('.preg-tab-content').forEach(c => {
+          c.style.display = 'none';
+        });
+
         btn.classList.add('active');
-        const tab = btn.getAttribute('data-tab');
-        const content = modalBody.querySelector(`#preg-tab-${tab}`);
-        if (content) content.style.display = 'block';
+        btn.style.background = '#e6a03c';
+        btn.style.color = '#fff';
+        btn.style.boxShadow = '0 2px 6px rgba(230, 160, 60, 0.4)';
+        btn.style.fontWeight = '800';
+
+        const tabKey = btn.getAttribute('data-tab');
+        const targetContent = modalBody.querySelector(`#preg-tab-${tabKey}`);
+        if (targetContent) {
+          targetContent.style.display = 'block';
+        }
+        App.Utils.vibrate([30]);
       });
     });
 
-    // Hafta Değişimi Slider
+    // 2. HAFTA DEĞİŞİMİ VE BOY/KİLO DÜZENLEME OLAYLARI
     const slider = modalBody.querySelector('#preg-week-slider');
     const weekDisplay = modalBody.querySelector('#preg-week-display');
     const cardContent = modalBody.querySelector('#preg-card-content');
+
+    const bindEditBadges = () => {
+      cardContent.querySelector('#btn-edit-size')?.addEventListener('click', () => {
+        const week = this.currentWeek;
+        const weekInfo = this.getWeekData(week);
+        const custom = JSON.parse(localStorage.getItem(`pregnancy_custom_${week}`) || '{}');
+        const currentVal = custom.size || weekInfo.size;
+        
+        const newVal = prompt(`📏 ${week}. Hafta Bebeğin Boy Ölçümü (Örn: 2.5 cm / 1 mm):`, currentVal);
+        if (newVal !== null && newVal.trim() !== '') {
+          custom.size = newVal.trim();
+          localStorage.setItem(`pregnancy_custom_${week}`, JSON.stringify(custom));
+          cardContent.innerHTML = renderCardBody(week);
+          bindEditBadges();
+          App.Utils.showToast('Boy ölçümü kaydedildi 📏', 'success');
+        }
+      });
+
+      cardContent.querySelector('#btn-edit-weight')?.addEventListener('click', () => {
+        const week = this.currentWeek;
+        const weekInfo = this.getWeekData(week);
+        const custom = JSON.parse(localStorage.getItem(`pregnancy_custom_${week}`) || '{}');
+        const currentVal = custom.weight || weekInfo.weight;
+        
+        const newVal = prompt(`⚖️ ${week}. Hafta Bebeğin Kilo Ölçümü (Örn: 15 gr / 1.2 kg):`, currentVal);
+        if (newVal !== null && newVal.trim() !== '') {
+          custom.weight = newVal.trim();
+          localStorage.setItem(`pregnancy_custom_${week}`, JSON.stringify(custom));
+          cardContent.innerHTML = renderCardBody(week);
+          bindEditBadges();
+          App.Utils.showToast('Kilo ölçümü kaydedildi ⚖️', 'success');
+        }
+      });
+    };
 
     slider?.addEventListener('input', (e) => {
       const w = parseInt(e.target.value, 10);
       this.currentWeek = w;
       localStorage.setItem('pregnancy_current_week', w.toString());
       weekDisplay.textContent = `${w}. Hafta`;
-      const data = this.getWeekData(w);
-      cardContent.innerHTML = `
-        <div style="font-size: 2.2rem; margin-bottom: 4px;">${data.fruit.split(' ')[1] || '🍋'}</div>
-        <h3 style="font-size: 1.1rem; font-weight: 700; color: #b87314; margin: 0 0 6px 0;">Bebeğiniz Bir ${data.fruit} Boyutunda!</h3>
-        
-        <div style="display: flex; justify-content: center; gap: 14px; margin-bottom: 10px; font-size: 0.85rem; font-weight: 600;">
-          <span style="background: var(--surface); padding: 4px 10px; border-radius: var(--radius-full); border: 1px solid var(--border);">📏 Boy: ${data.size}</span>
-          <span style="background: var(--surface); padding: 4px 10px; border-radius: var(--radius-full); border: 1px solid var(--border);">⚖️ Kilo: ${data.weight}</span>
-        </div>
-
-        <p style="font-size: 0.84rem; color: var(--text-primary); line-height: 1.45; text-align: left; background: var(--surface); padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--border); margin: 0;">
-          ${data.desc}
-        </p>
-      `;
+      cardContent.innerHTML = renderCardBody(w);
+      bindEditBadges();
     });
 
-    // Tekme Sayacı Olayları
+    bindEditBadges();
+
+    // 3. TEKME SAYACI OLAYLARI
     const kickDisplay = modalBody.querySelector('#kick-counter-display');
     modalBody.querySelector('#btn-add-kick')?.addEventListener('click', () => {
       this.kickCount++;
@@ -828,9 +895,10 @@ window.App.Pregnancy = {
     modalBody.querySelector('#btn-reset-kicks')?.addEventListener('click', () => {
       this.kickCount = 0;
       kickDisplay.textContent = '0';
+      App.Utils.vibrate([20]);
     });
 
-    // Sancı Zamanlayıcı Olayları
+    // 4. SANCI SAYACI OLAYLARI
     let timerInt = null;
     let timerSeconds = 0;
     const timerDisplay = modalBody.querySelector('#contraction-timer-display');
@@ -882,4 +950,5 @@ window.App.Pregnancy = {
     if (window.App.showModal) window.App.showModal('👶 Hafta Hafta Hamilelik & Bebek Takibi');
   }
 };
+
 

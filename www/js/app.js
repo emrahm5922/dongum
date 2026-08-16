@@ -692,40 +692,56 @@ window.App.Main = (() => {
     } else {
       // Standart Mod: Geri Sayım (Adete Kalan Gün) vs Döngü Günü
       if (centerMode === 'countdown') {
-        setText('cycle-day-number', cycleInfo.daysUntilPeriod != null ? cycleInfo.daysUntilPeriod.toString() : `${dayNumber}`);
-        setText('cycle-day-label', 'Adete Kalan Gün ⏳');
-        setText('cycle-day-toggle-hint', '👆 Döngü gününü gör (Dokun)');
+        const daysLeft = cycleInfo.daysUntilPeriod != null ? cycleInfo.daysUntilPeriod : cycleInfo.daysUntilOvulation;
+        setText('cycle-day-number', daysLeft != null ? `${daysLeft} Gün ⏳` : `${dayNumber}`);
+        setText('cycle-day-label', 'Adete Kalan');
+        setText('cycle-day-toggle-hint', `👆 ${dayNumber}. Döngü Gününe geç (Dokun)`);
       } else {
-        setText('cycle-day-number', dayNumber.toString());
-        setText('cycle-day-label', `${dayNumber}. Döngü Günü 🌸`);
-        setText('cycle-day-toggle-hint', '👆 Kalan günü gör (Dokun)');
+        setText('cycle-day-number', `${dayNumber}. Gün 🌸`);
+        setText('cycle-day-label', 'Döngü Aşaması');
+        const daysLeft = cycleInfo.daysUntilPeriod != null ? cycleInfo.daysUntilPeriod : '--';
+        setText('cycle-day-toggle-hint', `👆 Kalan güne geç (${daysLeft} Gün Kaldı)`);
       }
     }
 
     // Çember Ortasına Tıklandığında İkisi Arasında Geçiş Yapma (Toggle Click Handler)
+    const handleRingToggle = (e) => {
+      if (e && e.target && e.target.closest('#btn-center-period-toggle')) return;
+
+      const currentMode = localStorage.getItem('dongum_center_mode') || 'countdown';
+      const newMode = (currentMode === 'countdown') ? 'cycle_day' : 'countdown';
+      localStorage.setItem('dongum_center_mode', newMode);
+
+      if (App.Utils && App.Utils.vibrate) {
+        App.Utils.vibrate([40]);
+      }
+
+      if (App.Utils && App.Utils.showToast) {
+        App.Utils.showToast(
+          newMode === 'countdown' ? 'Görünüm: Adete Kalan Gün ⏳' : 'Görünüm: Döngü Günü 🌸',
+          'info',
+          2000
+        );
+      }
+
+      renderDashboard();
+    };
+
     const ringCenter = document.getElementById('cycle-ring-center');
     if (ringCenter) {
-      ringCenter.onclick = (e) => {
-        if (e.target.closest('#btn-center-period-toggle')) return;
-
-        const currentMode = localStorage.getItem('dongum_center_mode') || 'countdown';
-        const newMode = (currentMode === 'countdown') ? 'cycle_day' : 'countdown';
-        localStorage.setItem('dongum_center_mode', newMode);
-
-        if (App.Utils && App.Utils.vibrate) {
-          App.Utils.vibrate([35]);
-        }
-
-        if (App.Utils && App.Utils.showToast) {
-          App.Utils.showToast(
-            newMode === 'countdown' ? 'Görünüm: Adete Kalan Gün ⏳' : 'Görünüm: Döngü Günü 🌸',
-            'info',
-            2000
-          );
-        }
-
-        renderDashboard();
-      };
+      ringCenter.onclick = handleRingToggle;
+    }
+    const dayNumberEl = document.getElementById('cycle-day-number');
+    if (dayNumberEl) {
+      dayNumberEl.onclick = handleRingToggle;
+    }
+    const dayLabelEl = document.getElementById('cycle-day-label');
+    if (dayLabelEl) {
+      dayLabelEl.onclick = handleRingToggle;
+    }
+    const toggleHintEl = document.getElementById('cycle-day-toggle-hint');
+    if (toggleHintEl) {
+      toggleHintEl.onclick = handleRingToggle;
     }
     
     // Faz adı

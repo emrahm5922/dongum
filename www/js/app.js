@@ -2580,8 +2580,28 @@ window.App.Main = (() => {
 })();
 
 // ================================
-// UYGULAMA BAŞLATMA
+// UYGULAMA BAŞLATMA & PWA YÜKLEME
 // ================================
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const installBtn = document.getElementById('btn-quick-install-header');
+  if (installBtn) {
+    installBtn.style.display = 'inline-flex';
+    installBtn.onclick = async () => {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        const choiceResult = await deferredInstallPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          installBtn.style.display = 'none';
+        }
+        deferredInstallPrompt = null;
+      }
+    };
+  }
+});
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     App.Main.init();

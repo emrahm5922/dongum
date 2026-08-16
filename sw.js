@@ -1,7 +1,7 @@
 // Döngüm PWA - Service Worker
 // Çevrimdışı çalışma ve bildirim desteği
 
-const CACHE_NAME = 'dongum-v2';
+const CACHE_NAME = 'dongum-v4-live';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -25,19 +25,18 @@ const ASSETS_TO_CACHE = [
   './js/export.js'
 ];
 
-// Kurulum - dosyaları önbelleğe al
+// Kurulum - dosyaları önbelleğe al ve hemen aktifleş
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('[SW] Dosyalar önbelleğe alınıyor');
         return cache.addAll(ASSETS_TO_CACHE);
       })
-      .then(() => self.skipWaiting())
   );
 });
 
-// Aktivasyon - eski önbellekleri temizle
+// Aktivasyon - eski önbellekleri hemen temizle ve kontrolü devral
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -50,35 +49,30 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch - önce önbellekten dene, sonra ağa git
+// Fetch - Network First (Önce Ağa Git, Güncel Dosyayı Al, Çevrimdışıysa Önbellekten Sun)
 self.addEventListener('fetch', (event) => {
-  // Google Analytics ve dış servisler doğrudan ağa gitsin
-  if (event.request.url.includes('google') || event.request.url.includes('gtag') || event.request.url.includes('analytics')) {
+  if (event.request.url.includes('google') || event.request.url.includes('gtag') || event.request.url.includes('analytics') || event.request.url.includes('formsubmit')) {
     return;
   }
 
   event.respondWith(
-    caches.match(event.request)
-      .then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
         }
-        return fetch(event.request).then((response) => {
-          // Geçerli yanıtları önbelleğe al
-          if (response && response.status === 200 && response.type === 'basic') {
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
-          }
-          return response;
-        });
+        return response;
       })
       .catch(() => {
-        // Çevrimdışı ve önbellekte yok - ana sayfaya yönlendir
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
-        }
+        return caches.match(event.request).then((cached) => {
+          if (cached) return cached;
+          if (event.request.mode === 'navigate') {
+            return caches.match('./index.html');
+          }
+        });
       })
   );
 });

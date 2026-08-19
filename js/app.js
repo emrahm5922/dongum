@@ -2699,6 +2699,31 @@ window.App.Main = (() => {
     addClick('btn-edit-avatar', () => showProfileModal());
     addClick('btn-open-profile-dialog', () => showProfileModal());
 
+    // Uygulamayı Paylaş (Web Share API)
+    addClick('settings-share-app-btn', async () => {
+      const shareData = {
+        title: 'Döngüm - Regl ve Bebek Takip Uygulaması',
+        text: 'Regl döngünü takip et, hamilelik planla ve sağlığını kolayca izle. Ücretsiz ve reklamsız kullan!',
+        url: 'https://emrahm5922.github.io/dongum/'
+      };
+      
+      try {
+        if (navigator.share) {
+          await navigator.share(shareData);
+          App.Utils.showToast('Uygulama paylaşıldı! 💖', 'success');
+        } else {
+          // Fallback if Web Share API is not supported (copy to clipboard)
+          await navigator.clipboard.writeText(shareData.url);
+          App.Utils.showToast('Uygulama linki kopyalandı! 📋💖', 'success');
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('Paylaşım hatası:', err);
+          App.Utils.showToast('Paylaşım yapılamadı.', 'error');
+        }
+      }
+    });
+
     // Destek & Geri Bildirim
     addClick('settings-feedback-btn', () => {
       if (App.Support && App.Support.openFeedbackModal) {

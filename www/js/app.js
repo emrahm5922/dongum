@@ -174,7 +174,7 @@ window.App.Main = (() => {
     if (dateInput) {
       const today = App.Utils.toISODateString(new Date());
       dateInput.max = today;
-      dateInput.value = today;
+      dateInput.value = ''; // Kullanıcının kendi gerçek tarihini seçmesini zorunlu kıl
     }
   }
 

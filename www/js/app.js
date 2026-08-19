@@ -2895,6 +2895,51 @@ window.addEventListener('beforeinstallprompt', (e) => {
   }
 });
 
+// iOS PWA Install Banner
+window.addEventListener('DOMContentLoaded', () => {
+  const isIos = () => {
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    return /iphone|ipad|ipod/.test(userAgent);
+  };
+  const isStandalone = () => {
+    return ('standalone' in window.navigator) && (window.navigator.standalone);
+  };
+  
+  if (isIos() && !isStandalone()) {
+    // Show iOS install banner
+    const iosBanner = document.createElement('div');
+    iosBanner.innerHTML = `
+      <div style="position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: var(--surface); border: 2px solid var(--accent-period); border-radius: var(--radius-xl); padding: 14px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); z-index: 9999; text-align: center; display: flex; flex-direction: column; gap: 8px;">
+        <button id="close-ios-banner" style="position: absolute; top: 4px; right: 8px; background: none; border: none; font-size: 1.2rem; color: var(--text-secondary); cursor: pointer;">✕</button>
+        <div style="font-size: 1.5rem; margin-bottom: -4px;">📱</div>
+        <h3 style="margin: 0; font-size: 1rem; color: var(--text-primary); font-weight: 800;">Mobil Uygulama Gibi Kullanın!</h3>
+        <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
+          Tam ekran ve reklamsız kullanım için alttaki <strong>Paylaş</strong> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:middle; margin-bottom:2px;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> butonuna basıp<br><strong>"Ana Ekrana Ekle"</strong>yi seçin.
+        </p>
+        <div style="font-size: 1.5rem; margin-top: 4px; animation: bounce 1.5s infinite;">⬇️</div>
+      </div>
+      <style>
+        @keyframes bounce {
+          0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+          40% {transform: translateY(-8px);}
+          60% {transform: translateY(-4px);}
+        }
+      </style>
+    `;
+    document.body.appendChild(iosBanner);
+    
+    document.getElementById('close-ios-banner').addEventListener('click', () => {
+      iosBanner.style.display = 'none';
+      localStorage.setItem('ios_install_banner_dismissed', 'true');
+    });
+    
+    if (localStorage.getItem('ios_install_banner_dismissed') === 'true') {
+      iosBanner.style.display = 'none';
+    }
+  }
+});
+
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     App.Main.init();
